@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -17,7 +18,7 @@ class MainActivity : AppCompatActivity() {
     private val pokemonList = mutableListOf<PokemonClass>()
     private var isLoading = false
     private var offset = 0
-    private val limit = 15
+    private val limit = 21
 
     lateinit var btnNombre:CardView
     lateinit var btnNumero:CardView
@@ -49,8 +50,10 @@ class MainActivity : AppCompatActivity() {
     private fun initRecyclerView() {
         recyclerView = findViewById(R.id.recycler_view)
         adapter = PokemonAdapter(pokemonList)
-        recyclerView.layoutManager = GridLayoutManager(this, 3)
+        val layoutManager = GridLayoutManager(this, 3)
+        recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
+        //recyclerView.addItemDecoration(DividerItemDecoration(this, layoutManager.orientation))
     }
 
     private fun setupScrollListener() {
