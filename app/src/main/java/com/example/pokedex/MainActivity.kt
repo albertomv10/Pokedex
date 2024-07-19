@@ -1,15 +1,17 @@
 package com.example.pokedex
 
+import android.app.Dialog
 import android.os.Bundle
+import android.widget.SearchView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -37,7 +39,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initListeners() {
-        btnNombre.setOnClickListener { Toast.makeText(this, "Prueba", Toast.LENGTH_SHORT).show() }
+        btnNombre.setOnClickListener { showSearchDialog() }
     }
 
     private fun initComponents(){
@@ -71,31 +73,80 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun fetchPokemonData() {
-        isLoading = true
-        lifecycleScope.launch {
-            val response = RetrofitInstance.api.getPokemonList(offset, limit)
-            if (response.results.isNotEmpty()) {
-                response.results.forEach { pokemon ->
-                    val pokemonDetail = RetrofitInstance.api.getPokemonDetail(pokemon.name)
-                    val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(pokemon.name)
-
-                    val pokemonTypes = pokemonDetail.types.map { mapPokemonType(it.type.name) }
-
-                    val pokemonClass = PokemonClass(
-                        name = pokemonDetail.name.capitalize(),
-                        numPokedex = pokemonDetail.id,
-                        type = pokemonTypes,
-                        generation = pokemonSpecies.generation.name.capitalize(),
-                        image = pokemonDetail.sprites.other.officialArtwork.front_default
-                    )
-                    pokemonList.add(pokemonClass)
+    fun fetchPokemonData(searchQuery: String? = null, dialog: Dialog? = null) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = if (searchQuery.isNullOrEmpty()) {
+                    // Fetch the default list of Pokémon
+                    RetrofitInstance.api.getPokemonList(offset, limit)
+                } else {
+                    // Fetch Pokémon by name
+                    RetrofitInstance.api.getPokemonDetail(searchQuery)
                 }
-                offset += limit
-                adapter.notifyDataSetChanged()
+
+                withContext(Dispatchers.Main) {
+                    if (response is PokemonResponse) {
+                        response.results.forEach { pokemon ->
+                            val pokemonDetail = RetrofitInstance.api.getPokemonDetail(pokemon.name)
+                            val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(pokemon.name)
+
+                            val pokemonTypes = pokemonDetail.types.map { mapPokemonType(it.type.name) }
+
+                            val pokemonClass = PokemonClass(
+                                name = pokemonDetail.name.capitalize(),
+                                numPokedex = pokemonDetail.id,
+                                type = pokemonTypes,
+                                generation = pokemonSpecies.generation.name.capitalize(),
+                                image = pokemonDetail.sprites.other.officialArtwork.front_default
+                            )
+                            pokemonList.add(pokemonClass)
+                        }
+                        adapter.notifyDataSetChanged()
+                    } else if (response is PokemonDetail) {
+                        val pokemonDetail = response
+                        val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(pokemonDetail.name)
+                        val pokemonTypes = pokemonDetail.types.map { mapPokemonType(it.type.name) }
+
+                        val pokemonClass = PokemonClass(
+                            name = pokemonDetail.name.capitalize(),
+                            numPokedex = pokemonDetail.id,
+                            type = pokemonTypes,
+                            generation = pokemonSpecies.generation.name.capitalize(),
+                            image = pokemonDetail.sprites.other.officialArtwork.front_default
+                        )
+                        adapter.updateData(listOf(pokemonClass))
+                        dialog?.dismiss()
+                    } else {
+                        Toast.makeText(this@MainActivity, "No se ha obtenido ningún resultado", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@MainActivity, "Error al obtener datos", Toast.LENGTH_SHORT).show()
+                }
             }
-            isLoading = false
         }
+    }
+
+    private fun showSearchDialog() {
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.dialog_search_pokemon)
+        dialog.show()
+
+        val searchView = dialog.findViewById<androidx.appcompat.widget.SearchView>(R.id.search_view)
+        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                query?.let {
+                    fetchPokemonData(it, dialog)
+                }
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return false
+            }
+        })
     }
 
 }

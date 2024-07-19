@@ -11,16 +11,13 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 
-class PokemonAdapter(private val pokemonList: List<PokemonClass>) :
+class PokemonAdapter(private val pokemonList: MutableList<PokemonClass>) :
     RecyclerView.Adapter<PokemonAdapter.PokemonViewHolder>() {
 
     class PokemonViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val pokemonImage: ImageView = view.findViewById(R.id.pokemon_image)
         val pokemonName: TextView = view.findViewById(R.id.pokemon_name)
         val typeColorBar: View = view.findViewById(R.id.type_color_bar)
-        //val pokemonType: TextView = view.findViewById(R.id.pokemon_type)
-        //val pokemonNumber: TextView = view.findViewById(R.id.pokemon_number)
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PokemonViewHolder {
@@ -32,16 +29,7 @@ class PokemonAdapter(private val pokemonList: List<PokemonClass>) :
         val pokemon = pokemonList[position]
 
         holder.pokemonName.text = pokemon.name
-
         Picasso.get().load(pokemon.image).into(holder.pokemonImage)
-
-        /*
-        val typeNames = pokemon.type.joinToString(", ") { it.name }
-        holder.pokemonType.text = typeNames
-
-        holder.pokemonGeneration.text = "Generación: ${pokemon.generation}"
-
-         */
 
         // Usar el primer tipo para la barra de color
         val primaryTypeColor = pokemon.type.firstOrNull()?.colorResId ?: R.color.default_type_color
@@ -58,6 +46,12 @@ class PokemonAdapter(private val pokemonList: List<PokemonClass>) :
     }
 
     override fun getItemCount() = pokemonList.size
+
+    fun updateData(newPokemonList: List<PokemonClass>) {
+        pokemonList.clear()
+        pokemonList.addAll(newPokemonList)
+        notifyDataSetChanged()
+    }
 }
 
 fun mapPokemonType(typeName: String): PokemonType {
@@ -82,4 +76,5 @@ fun mapPokemonType(typeName: String): PokemonType {
         "normal" -> PokemonType.NORMAL
         else -> PokemonType.NORMAL // Valor predeterminado si no se encuentra el tipo
     }
+
 }
