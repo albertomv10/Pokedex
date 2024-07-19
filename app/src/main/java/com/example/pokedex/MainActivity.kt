@@ -73,19 +73,18 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    fun fetchPokemonData(searchQuery: String? = null, dialog: Dialog? = null) {
+    private fun fetchPokemonData() {
+        if (isLoading) return
+        isLoading = true
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = if (searchQuery.isNullOrEmpty()) {
-                    // Fetch the default list of Pokémon
-                    RetrofitInstance.api.getPokemonList(offset, limit)
-                } else {
-                    // Fetch Pokémon by name
-                    RetrofitInstance.api.getPokemonDetail(searchQuery)
-                }
+                val response = RetrofitInstance.api.getPokemonList(offset, limit)
 
                 withContext(Dispatchers.Main) {
-                    if (response is PokemonResponse) {
+                    if (response.results.isNotEmpty()) {
+                        val newPokemons = mutableListOf<PokemonClass>()
+
                         response.results.forEach { pokemon ->
                             val pokemonDetail = RetrofitInstance.api.getPokemonDetail(pokemon.name)
                             val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(pokemon.name)
@@ -99,10 +98,42 @@ class MainActivity : AppCompatActivity() {
                                 generation = pokemonSpecies.generation.name.capitalize(),
                                 image = pokemonDetail.sprites.other.officialArtwork.front_default
                             )
-                            pokemonList.add(pokemonClass)
+
+                            if (!pokemonList.any { it.numPokedex == pokemonClass.numPokedex }) {
+                                newPokemons.add(pokemonClass)
+                            }
                         }
-                        adapter.notifyDataSetChanged()
-                    } else if (response is PokemonDetail) {
+
+                        if (newPokemons.isNotEmpty()) {
+                            pokemonList.addAll(newPokemons)
+                            adapter.notifyDataSetChanged()
+                            offset += limit
+                        }
+                    } else {
+                        Toast.makeText(this@MainActivity, "No se ha obtenido ningún resultado", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@MainActivity, "Error al obtener datos", Toast.LENGTH_SHORT).show()
+                }
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    private fun searchPokemonData(searchQuery: String, dialog: Dialog? = null) {
+        if (isLoading) return
+        isLoading = true
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = RetrofitInstance.api.getPokemonDetail(searchQuery)
+
+                withContext(Dispatchers.Main) {
+                    if (response != null) {
                         val pokemonDetail = response
                         val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(pokemonDetail.name)
                         val pokemonTypes = pokemonDetail.types.map { mapPokemonType(it.type.name) }
@@ -114,10 +145,14 @@ class MainActivity : AppCompatActivity() {
                             generation = pokemonSpecies.generation.name.capitalize(),
                             image = pokemonDetail.sprites.other.officialArtwork.front_default
                         )
-                        adapter.updateData(listOf(pokemonClass))
+
+                        pokemonList.clear()  // Limpiar la lista antes de añadir el resultado de la búsqueda
+                        pokemonList.add(pokemonClass)
+                        adapter.notifyDataSetChanged()
+
                         dialog?.dismiss()
                     } else {
-                        Toast.makeText(this@MainActivity, "No se ha obtenido ningún resultado", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@MainActivity, "No se encontró ningún Pokémon", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
@@ -125,6 +160,8 @@ class MainActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@MainActivity, "Error al obtener datos", Toast.LENGTH_SHORT).show()
                 }
+            } finally {
+                isLoading = false
             }
         }
     }
@@ -138,7 +175,7 @@ class MainActivity : AppCompatActivity() {
         searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 query?.let {
-                    fetchPokemonData(it, dialog)
+                    searchPokemonData(it, dialog)
                 }
                 return true
             }
