@@ -1,8 +1,8 @@
 package com.example.pokedex
 
 import android.app.Dialog
+import android.content.Intent
 import android.os.Bundle
-import android.widget.SearchView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
@@ -31,7 +31,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
         initComponents()
         initListeners()
         setupScrollListener()
@@ -51,7 +50,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun initRecyclerView() {
         recyclerView = findViewById(R.id.recycler_view)
-        adapter = PokemonAdapter(pokemonList)
+        adapter = PokemonAdapter(pokemonList){navigateToDetail(it)}
         val layoutManager = GridLayoutManager(this, 3)
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
@@ -88,6 +87,7 @@ class MainActivity : AppCompatActivity() {
                         response.results.forEach { pokemon ->
                             val pokemonDetail = RetrofitInstance.api.getPokemonDetail(pokemon.name)
                             val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(pokemon.name)
+                            val generationDetail = RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
 
                             val pokemonTypes = pokemonDetail.types.map { mapPokemonType(it.type.name) }
 
@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity() {
                                 name = pokemonDetail.name.capitalize(),
                                 numPokedex = pokemonDetail.id,
                                 type = pokemonTypes,
-                                generation = pokemonSpecies.generation.name.capitalize(),
+                                generation = generationDetail.names[5].name,
                                 image = pokemonDetail.sprites.other.officialArtwork.front_default
                             )
 
@@ -186,5 +186,19 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    private fun navigateToDetail(pokemon: PokemonClass) {
+        val intent = Intent(this, PokemonDetailActivity::class.java)
+        intent.putExtra("pokemon_nombre", pokemon.name)
+        intent.putExtra("pokemon_id", pokemon.numPokedex)
+
+        // Convertir la lista de PokemonType a una lista de strings
+        val tipos = pokemon.type.map { it.name }
+        intent.putStringArrayListExtra("pokemon_tipo", ArrayList(tipos))
+
+        intent.putExtra("pokemon_generacion", pokemon.generation)
+        intent.putExtra("pokemon_imagen", pokemon.image)
+
+        startActivity(intent)
+    }
 }
 

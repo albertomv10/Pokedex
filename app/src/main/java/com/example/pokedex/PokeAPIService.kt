@@ -15,6 +15,9 @@ interface PokeApiService {
 
     @GET("pokemon-species/{name}")
     suspend fun getPokemonSpecies(@Path("name") name: String): PokemonSpecies
+
+    @GET("generation/{name}")
+    suspend fun getPokemonGeneration(@Path("name") name: String): GenerationDetail
 }
 
 

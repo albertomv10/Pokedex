@@ -32,15 +32,9 @@ data class OfficialArtwork(
 data class TypeSlot(
     val slot: Int,
     val type: Type,
-    val names: List<LocalizedName>
-
 )
 
 data class Type(
-    val name: String
-)
-
-data class LocalizedName(
     val name: String
 )
 
@@ -51,4 +45,11 @@ data class PokemonSpecies(
 data class Generation(
     val name: String,
     val url: String
+)
+
+data class GenerationDetail(
+    val names: List<Idiomas>
+)
+data class Idiomas (
+    val name: String
 )
