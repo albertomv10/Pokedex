@@ -2,4 +2,27 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="button_background">#FFD740</color>
+    <color name="texto_boton">#2B4CFF</color>
+
+    <!-- Colores tipos de pokemon -->
+    <color name="pokemon_fuego">#CC0000</color>        <!-- Dark Red -->
+    <color name="pokemon_agua">#0000CC</color>         <!-- Dark Blue -->
+    <color name="pokemon_planta">#007800</color>       <!-- Dark Green -->
+    <color name="pokemon_electrico">#CCCC00</color>    <!-- Dark Yellow -->
+    <color name="pokemon_hielo">#E0E0E0</color>        <!-- Light Gray -->
+    <color name="pokemon_lucha">#CC0099</color>        <!-- Dark Magenta -->
+    <color name="pokemon_veneno">#009999</color>       <!-- Dark Cyan -->
+    <color name="pokemon_tierra">#8B4513</color>       <!-- Brown -->
+    <color name="pokemon_volador">#6CA6CD</color>      <!-- Light Sky Blue -->
+    <color name="pokemon_psiquico">#CC0066</color>     <!-- Dark Pink -->
+    <color name="pokemon_bicho">#52A201</color>        <!-- Dark Chartreuse -->
+    <color name="pokemon_roca">#8B0000</color>         <!-- Dark Brown -->
+    <color name="pokemon_fantasma">#6A5ACD</color>     <!-- Slate Blue -->
+    <color name="pokemon_siniestro">#4B0082</color>    <!-- Indigo -->
+    <color name="pokemon_dragon">#7B68EE</color>       <!-- Medium Slate Blue -->
+    <color name="pokemon_acero">#778899</color>        <!-- Light Slate Gray -->
+    <color name="pokemon_hada">#FFB6C1</color>         <!-- Light Pink -->
+    <color name="pokemon_normal">#808080</color>       <!-- Gray -->
+    <color name="default_type_color">#FFFFFFFF</color>
 </resources>
