@@ -130,19 +130,20 @@ class MainActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = RetrofitInstance.api.getPokemonDetail(searchQuery)
+                val pokemonDetail = RetrofitInstance.api.getPokemonDetail(searchQuery)
 
                 withContext(Dispatchers.Main) {
-                    if (response != null) {
-                        val pokemonDetail = response
+                    if (pokemonDetail != null) {
                         val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(pokemonDetail.name)
                         val pokemonTypes = pokemonDetail.types.map { mapPokemonType(it.type.name) }
+                        val generationDetail = RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
+
 
                         val pokemonClass = PokemonClass(
                             name = pokemonDetail.name.capitalize(),
                             numPokedex = pokemonDetail.id,
                             type = pokemonTypes,
-                            generation = pokemonSpecies.generation.name.capitalize(),
+                            generation = generationDetail.names[5].name,
                             image = pokemonDetail.sprites.other.officialArtwork.front_default
                         )
 
@@ -175,7 +176,7 @@ class MainActivity : AppCompatActivity() {
         searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 query?.let {
-                    searchPokemonData(it, dialog)
+                    searchPokemonData(it.toLowerCase(), dialog)
                 }
                 return true
             }
