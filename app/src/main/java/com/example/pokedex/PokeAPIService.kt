@@ -24,7 +24,7 @@ interface PokeApiService {
 object RetrofitInstance {
     val api: PokeApiService by lazy {
         Retrofit.Builder()
-            .baseUrl("https://pokeapi.co/api/v2/")
+            .baseUrl(MainActivity.BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(PokeApiService::class.java)

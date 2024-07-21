@@ -15,7 +15,14 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        const val TAG = "MainActivity"
+        const val BASE_URL = "https://pokeapi.co/api/v2/"
+        const val NO_RESULTS_FOUND = "No se encontraron resultados"
+    }
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: PokemonAdapter
@@ -88,11 +95,6 @@ class MainActivity : AppCompatActivity() {
                     val pokemonDetails = response.results.map { pokemon ->
                         async {
                             val pokemonDetail = RetrofitInstance.api.getPokemonDetail(pokemon.name)
-                            val pokemonSpecies =
-                                RetrofitInstance.api.getPokemonSpecies(pokemon.name)
-                            val generationDetail =
-                                RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
-
                             val pokemonTypes =
                                 pokemonDetail.types.map { mapPokemonType(it.type.name) }
 
@@ -100,7 +102,6 @@ class MainActivity : AppCompatActivity() {
                                 name = pokemonDetail.name.capitalize(),
                                 numPokedex = pokemonDetail.id,
                                 type = pokemonTypes,
-                                generation = generationDetail.names[5].name,
                                 image = pokemonDetail.sprites.other.officialArtwork.front_default
                             )
                         }
@@ -120,7 +121,7 @@ class MainActivity : AppCompatActivity() {
                         } else {
                             Toast.makeText(
                                 this@MainActivity,
-                                "No se ha obtenido ningún resultado",
+                                NO_RESULTS_FOUND,
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -129,7 +130,7 @@ class MainActivity : AppCompatActivity() {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(
                             this@MainActivity,
-                            "No se ha obtenido ningún resultado",
+                            NO_RESULTS_FOUND,
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -137,7 +138,7 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@MainActivity, "Error al obtener datos", Toast.LENGTH_SHORT)
+                    Toast.makeText(this@MainActivity, NO_RESULTS_FOUND, Toast.LENGTH_SHORT)
                         .show()
                 }
             } finally {
@@ -147,49 +148,42 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun searchPokemonData(searchQuery: String, dialog: Dialog? = null) {
+    private fun searchPokemonName(searchQuery: String, dialog: Dialog? = null) {
         if (isLoading) return
         isLoading = true
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val pokemonDetail = RetrofitInstance.api.getPokemonDetail(searchQuery)
+                val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(pokemonDetail.name)
+                val generationDetail = RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
 
+                val pokemonTypes = pokemonDetail.types.map { mapPokemonType(it.type.name) }
+                // Manejo de posibles excepciones de índice
+                val generationName = generationDetail.names.getOrNull(5)?.name ?: "Unknown"
+
+                val pokemonClass = PokemonClass(
+                    name = pokemonDetail.name.capitalize(),
+                    numPokedex = pokemonDetail.id,
+                    type = pokemonTypes,
+                    generation = generationName,
+                    image = pokemonDetail.sprites.other.officialArtwork.front_default
+                )
+
+                // Navegar a la pantalla de detalles del Pokémon
                 withContext(Dispatchers.Main) {
-                    if (pokemonDetail != null) {
-                        val pokemonSpecies =
-                            RetrofitInstance.api.getPokemonSpecies(pokemonDetail.name)
-                        val pokemonTypes = pokemonDetail.types.map { mapPokemonType(it.type.name) }
-                        val generationDetail =
-                            RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
-
-
-                        val pokemonClass = PokemonClass(
-                            name = pokemonDetail.name.capitalize(),
-                            numPokedex = pokemonDetail.id,
-                            type = pokemonTypes,
-                            generation = generationDetail.names[5].name,
-                            image = pokemonDetail.sprites.other.officialArtwork.front_default
-                        )
-
-                        pokemonList.clear()  // Limpiar la lista antes de añadir el resultado de la búsqueda
-                        pokemonList.add(pokemonClass)
-                        adapter.notifyDataSetChanged()
-
-                        dialog?.dismiss()
-                    } else {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "No se encontró ningún Pokémon",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    navigateToDetail(pokemonClass)
+                    dialog?.dismiss()
                 }
+
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@MainActivity, "Error al obtener datos", Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(
+                        this@MainActivity,
+                        NO_RESULTS_FOUND,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             } finally {
                 isLoading = false
@@ -207,7 +201,7 @@ class MainActivity : AppCompatActivity() {
             androidx.appcompat.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 query?.let {
-                    searchPokemonData(it.toLowerCase(), dialog)
+                    searchPokemonName(it.toLowerCase(), dialog)
                 }
                 return true
             }

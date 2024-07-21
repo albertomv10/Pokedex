@@ -4,7 +4,7 @@ data class PokemonClass(
     val name: String,
     val numPokedex: Int,
     val type: List<PokemonType>,
-    val generation: String,
+    val generation: String = "",
     val image: String) {
     init {
         require(name.isNotBlank()) { "El nombre no puede estar en blanco" }
