@@ -10,6 +10,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -22,9 +24,9 @@ class MainActivity : AppCompatActivity() {
     private var offset = 0
     private val limit = 21
 
-    lateinit var btnNombre:CardView
-    lateinit var btnNumero:CardView
-    lateinit var btnTipo:CardView
+    lateinit var btnNombre: CardView
+    lateinit var btnNumero: CardView
+    lateinit var btnTipo: CardView
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +43,7 @@ class MainActivity : AppCompatActivity() {
         btnNombre.setOnClickListener { showSearchDialog() }
     }
 
-    private fun initComponents(){
+    private fun initComponents() {
         initRecyclerView()
         btnNombre = findViewById(R.id.botonNombre)
         btnNumero = findViewById(R.id.botonNumero)
@@ -50,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun initRecyclerView() {
         recyclerView = findViewById(R.id.recycler_view)
-        adapter = PokemonAdapter(pokemonList){navigateToDetail(it)}
+        adapter = PokemonAdapter(pokemonList) { navigateToDetail(it) }
         val layoutManager = GridLayoutManager(this, 3)
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
@@ -80,25 +82,32 @@ class MainActivity : AppCompatActivity() {
             try {
                 val response = RetrofitInstance.api.getPokemonList(offset, limit)
 
-                withContext(Dispatchers.Main) {
-                    if (response.results.isNotEmpty()) {
-                        val newPokemons = mutableListOf<PokemonClass>()
+                if (response.results.isNotEmpty()) {
+                    val newPokemons = mutableListOf<PokemonClass>()
 
-                        response.results.forEach { pokemon ->
+                    val pokemonDetails = response.results.map { pokemon ->
+                        async {
                             val pokemonDetail = RetrofitInstance.api.getPokemonDetail(pokemon.name)
-                            val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(pokemon.name)
-                            val generationDetail = RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
+                            val pokemonSpecies =
+                                RetrofitInstance.api.getPokemonSpecies(pokemon.name)
+                            val generationDetail =
+                                RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
 
-                            val pokemonTypes = pokemonDetail.types.map { mapPokemonType(it.type.name) }
+                            val pokemonTypes =
+                                pokemonDetail.types.map { mapPokemonType(it.type.name) }
 
-                            val pokemonClass = PokemonClass(
+                            PokemonClass(
                                 name = pokemonDetail.name.capitalize(),
                                 numPokedex = pokemonDetail.id,
                                 type = pokemonTypes,
                                 generation = generationDetail.names[5].name,
                                 image = pokemonDetail.sprites.other.officialArtwork.front_default
                             )
+                        }
+                    }.awaitAll()
 
+                    withContext(Dispatchers.Main) {
+                        pokemonDetails.forEach { pokemonClass ->
                             if (!pokemonList.any { it.numPokedex == pokemonClass.numPokedex }) {
                                 newPokemons.add(pokemonClass)
                             }
@@ -108,21 +117,35 @@ class MainActivity : AppCompatActivity() {
                             pokemonList.addAll(newPokemons)
                             adapter.notifyDataSetChanged()
                             offset += limit
+                        } else {
+                            Toast.makeText(
+                                this@MainActivity,
+                                "No se ha obtenido ningún resultado",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
-                    } else {
-                        Toast.makeText(this@MainActivity, "No se ha obtenido ningún resultado", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "No se ha obtenido ningún resultado",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@MainActivity, "Error al obtener datos", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Error al obtener datos", Toast.LENGTH_SHORT)
+                        .show()
                 }
             } finally {
                 isLoading = false
             }
         }
     }
+
 
     private fun searchPokemonData(searchQuery: String, dialog: Dialog? = null) {
         if (isLoading) return
@@ -134,9 +157,11 @@ class MainActivity : AppCompatActivity() {
 
                 withContext(Dispatchers.Main) {
                     if (pokemonDetail != null) {
-                        val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(pokemonDetail.name)
+                        val pokemonSpecies =
+                            RetrofitInstance.api.getPokemonSpecies(pokemonDetail.name)
                         val pokemonTypes = pokemonDetail.types.map { mapPokemonType(it.type.name) }
-                        val generationDetail = RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
+                        val generationDetail =
+                            RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
 
 
                         val pokemonClass = PokemonClass(
@@ -153,13 +178,18 @@ class MainActivity : AppCompatActivity() {
 
                         dialog?.dismiss()
                     } else {
-                        Toast.makeText(this@MainActivity, "No se encontró ningún Pokémon", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this@MainActivity,
+                            "No se encontró ningún Pokémon",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@MainActivity, "Error al obtener datos", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Error al obtener datos", Toast.LENGTH_SHORT)
+                        .show()
                 }
             } finally {
                 isLoading = false
@@ -173,7 +203,8 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
 
         val searchView = dialog.findViewById<androidx.appcompat.widget.SearchView>(R.id.search_view)
-        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+        searchView.setOnQueryTextListener(object :
+            androidx.appcompat.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 query?.let {
                     searchPokemonData(it.toLowerCase(), dialog)
