@@ -3,6 +3,7 @@ package com.example.pokedex
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
@@ -31,9 +32,11 @@ class MainActivity : AppCompatActivity() {
     private var offset = 0
     private val limit = 21
 
+    lateinit var logo: ImageView
     lateinit var btnNombre: CardView
     lateinit var btnNumero: CardView
     lateinit var btnTipo: CardView
+    lateinit var lupa: androidx.appcompat.widget.SearchView
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,18 +51,40 @@ class MainActivity : AppCompatActivity() {
 
     private fun initListeners() {
         btnNombre.setOnClickListener { showSearchDialog() }
+
+        lupa.setOnQueryTextListener(object :
+            androidx.appcompat.widget.SearchView.OnQueryTextListener {
+
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                query?.let {
+
+                    searchPokemonName(it.toLowerCase())
+
+                }
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+
+                return false
+            }
+        }
+
+        )
     }
 
     private fun initComponents() {
         initRecyclerView()
+        logo = findViewById(R.id.logo)
         btnNombre = findViewById(R.id.botonNombre)
         btnNumero = findViewById(R.id.botonNumero)
         btnTipo = findViewById(R.id.botonTipo)
+        lupa = findViewById(R.id.lupa)
     }
 
     private fun initRecyclerView() {
         recyclerView = findViewById(R.id.recycler_view)
-        adapter = PokemonAdapter(pokemonList) { navigateToDetail(it) }
+        adapter = PokemonAdapter(pokemonList) { searchPokemonName(it) }
         val layoutManager = GridLayoutManager(this, 3)
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
@@ -154,7 +179,7 @@ class MainActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val pokemonDetail = RetrofitInstance.api.getPokemonDetail(searchQuery)
+                val pokemonDetail = RetrofitInstance.api.getPokemonDetail(searchQuery.toLowerCase())
                 val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(pokemonDetail.name)
                 val generationDetail = RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
 

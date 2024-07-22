@@ -11,7 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 
-class PokemonAdapter(private val pokemonList: MutableList<PokemonClass>, private val onItemSelected:(PokemonClass) -> Unit) :
+class PokemonAdapter(private val pokemonList: MutableList<PokemonClass>, private val onItemSelected:(String) -> Unit) :
     RecyclerView.Adapter<PokemonAdapter.PokemonViewHolder>() {
 
     class PokemonViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -40,7 +40,7 @@ class PokemonAdapter(private val pokemonList: MutableList<PokemonClass>, private
         background.setColor(color)
 
         holder.itemView.setOnClickListener {
-            onItemSelected(pokemon)
+            onItemSelected(pokemon.name)
         }
 
     }
