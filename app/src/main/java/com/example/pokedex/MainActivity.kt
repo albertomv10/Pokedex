@@ -3,7 +3,11 @@ package com.example.pokedex
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.CheckBox
 import android.widget.ImageView
+import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
@@ -33,10 +37,7 @@ class MainActivity : AppCompatActivity() {
     private val limit = 21
 
     lateinit var logo: ImageView
-    lateinit var btnNombre: CardView
-    lateinit var btnNumero: CardView
-    lateinit var btnTipo: CardView
-    lateinit var lupa: androidx.appcompat.widget.SearchView
+    lateinit var btnFiltrar: ImageView
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,36 +51,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initListeners() {
-        btnNombre.setOnClickListener { showSearchDialog() }
-
-        lupa.setOnQueryTextListener(object :
-            androidx.appcompat.widget.SearchView.OnQueryTextListener {
-
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                query?.let {
-
-                    searchPokemonName(it.toLowerCase())
-
-                }
-                return true
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-
-                return false
-            }
-        }
-
-        )
+        btnFiltrar.setOnClickListener { showSearchDialog() }
     }
 
     private fun initComponents() {
         initRecyclerView()
         logo = findViewById(R.id.logo)
-        btnNombre = findViewById(R.id.botonNombre)
-        btnNumero = findViewById(R.id.botonNumero)
-        btnTipo = findViewById(R.id.botonTipo)
-        lupa = findViewById(R.id.lupa)
+        btnFiltrar = findViewById(R.id.btnFiltrar)
     }
 
     private fun initRecyclerView() {
@@ -172,7 +150,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     private fun searchPokemonName(searchQuery: String, dialog: Dialog? = null) {
         if (isLoading) return
         isLoading = true
@@ -216,6 +193,77 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun fetchFilteredPokemonData(selectedGeneration: String, selectedTypes: List<PokemonType>, dialog: Dialog? = null) {
+        if (isLoading) return
+        isLoading = true
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = RetrofitInstance.api.getPokemonList(offset, limit)
+
+                if (response.results.isNotEmpty()) {
+                    val newPokemons = mutableListOf<PokemonClass>()
+
+                    val pokemonDetails = response.results.map { pokemon ->
+                        async {
+                            val pokemonDetail = RetrofitInstance.api.getPokemonDetail(pokemon.name)
+                            val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(pokemonDetail.name)
+                            val generationDetail = RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
+                            val pokemonTypes = pokemonDetail.types.map { mapPokemonType(it.type.name) }
+
+                            PokemonClass(
+                                name = pokemonDetail.name.capitalize(),
+                                numPokedex = pokemonDetail.id,
+                                type = pokemonTypes,
+                                generation = generationDetail.names.getOrNull(5)?.name ?: "Unknown",
+                                image = pokemonDetail.sprites.other.officialArtwork.front_default
+                            )
+                        }
+                    }.awaitAll()
+
+                    withContext(Dispatchers.Main) {
+                        pokemonDetails.forEach { pokemonClass ->
+                            if (pokemonClass.generation == selectedGeneration && pokemonClass.type.containsAll(selectedTypes)) {
+                                if (!pokemonList.any { it.numPokedex == pokemonClass.numPokedex }) {
+                                    newPokemons.add(pokemonClass)
+                                }
+                            }
+                        }
+
+                        if (newPokemons.isNotEmpty()) {
+                            pokemonList.addAll(newPokemons)
+                            adapter.notifyDataSetChanged()
+                            offset += limit
+                        } else {
+                            Toast.makeText(
+                                this@MainActivity,
+                                NO_RESULTS_FOUND,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        dialog?.dismiss()
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            this@MainActivity,
+                            NO_RESULTS_FOUND,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@MainActivity, NO_RESULTS_FOUND, Toast.LENGTH_SHORT)
+                        .show()
+                }
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
     private fun showSearchDialog() {
         val dialog = Dialog(this)
         dialog.setContentView(R.layout.dialog_search_pokemon)
@@ -235,6 +283,64 @@ class MainActivity : AppCompatActivity() {
                 return false
             }
         })
+
+        val spinner = dialog.findViewById<Spinner>(R.id.spinner)
+        ArrayAdapter.createFromResource(this, R.array.generations, android.R.layout.simple_spinner_item).also {
+                adapter ->
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinner.adapter = adapter
+        }
+
+        val checkBoxNormal: CheckBox = dialog.findViewById(R.id.checkbox_normal)
+        val checkBoxFuego: CheckBox = dialog.findViewById(R.id.checkbox_fuego)
+        val checkBoxAgua: CheckBox = dialog.findViewById(R.id.checkbox_agua)
+        val checkBoxPlanta: CheckBox = dialog.findViewById(R.id.checkbox_planta)
+        val checkBoxElectrico: CheckBox = dialog.findViewById(R.id.checkbox_electrico)
+        val checkBoxHielo: CheckBox = dialog.findViewById(R.id.checkbox_hielo)
+        val checkBoxLucha: CheckBox = dialog.findViewById(R.id.checkbox_lucha)
+        val checkBoxVeneno: CheckBox = dialog.findViewById(R.id.checkbox_veneno)
+        val checkBoxTierra: CheckBox = dialog.findViewById(R.id.checkbox_tierra)
+        val checkBoxVolador: CheckBox = dialog.findViewById(R.id.checkbox_volador)
+        val checkBoxPsiquico: CheckBox = dialog.findViewById(R.id.checkbox_psiquico)
+        val checkBoxBicho: CheckBox = dialog.findViewById(R.id.checkbox_bicho)
+        val checkBoxRoca: CheckBox = dialog.findViewById(R.id.checkbox_roca)
+        val checkBoxFantasma: CheckBox = dialog.findViewById(R.id.checkbox_fantasma)
+        val checkBoxSiniestro: CheckBox = dialog.findViewById(R.id.checkbox_siniestro)
+        val checkBoxDragon: CheckBox = dialog.findViewById(R.id.checkbox_dragon)
+        val checkBoxAcero: CheckBox = dialog.findViewById(R.id.checkbox_acero)
+        val checkBoxHada: CheckBox = dialog.findViewById(R.id.checkbox_hada)
+
+        val filtrarButton = dialog.findViewById<Button>(R.id.btnFiltrar)
+
+        filtrarButton.setOnClickListener {
+            val selectedGenerations = spinner.selectedItem.toString()
+            val selectedTypesString = mutableListOf<String>()
+
+            if (checkBoxNormal.isChecked) selectedTypesString.add(getString(R.string.normal))
+            if (checkBoxFuego.isChecked) selectedTypesString.add(getString(R.string.fuego))
+            if (checkBoxAgua.isChecked) selectedTypesString.add(getString(R.string.agua))
+            if (checkBoxPlanta.isChecked) selectedTypesString.add(getString(R.string.planta))
+            if (checkBoxElectrico.isChecked) selectedTypesString.add(getString(R.string.electrico))
+            if (checkBoxHielo.isChecked) selectedTypesString.add(getString(R.string.hielo))
+            if (checkBoxLucha.isChecked) selectedTypesString.add(getString(R.string.lucha))
+            if (checkBoxVeneno.isChecked) selectedTypesString.add(getString(R.string.veneno))
+            if (checkBoxTierra.isChecked) selectedTypesString.add(getString(R.string.tierra))
+            if (checkBoxVolador.isChecked) selectedTypesString.add(getString(R.string.volador))
+            if (checkBoxPsiquico.isChecked) selectedTypesString.add(getString(R.string.psiquico))
+            if (checkBoxBicho.isChecked) selectedTypesString.add(getString(R.string.bicho))
+            if (checkBoxRoca.isChecked) selectedTypesString.add(getString(R.string.roca))
+            if (checkBoxFantasma.isChecked) selectedTypesString.add(getString(R.string.fantasma))
+            if (checkBoxSiniestro.isChecked) selectedTypesString.add(getString(R.string.siniestro))
+            if (checkBoxDragon.isChecked) selectedTypesString.add(getString(R.string.dragon))
+            if (checkBoxAcero.isChecked) selectedTypesString.add(getString(R.string.acero))
+            if (checkBoxHada.isChecked) selectedTypesString.add(getString(R.string.hada))
+
+            val selectedTypes = selectedTypesString.map { mapPokemonType(it) }
+
+            fetchFilteredPokemonData(selectedGenerations, selectedTypes, dialog)
+        }
+
+
     }
 
     private fun navigateToDetail(pokemon: PokemonClass) {

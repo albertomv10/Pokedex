@@ -1,15 +1,183 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+    android:layout_width="270dp"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
 
     <androidx.appcompat.widget.SearchView
         android:id="@+id/search_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:queryHint="Buscar Pokémon"/>
+        app:iconifiedByDefault="false"
+        android:queryHint="Buscar Pokémon" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Generación"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"/>
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tipo/s"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="127dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp">
+            <CheckBox
+                android:id="@+id/checkbox_normal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/normal"
+                android:buttonTint="@color/pokemon_normal"/>
+            <CheckBox
+                android:id="@+id/checkbox_fuego"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/fuego"
+                android:buttonTint="@color/pokemon_fuego"
+                android:checked="true" />
+            <CheckBox
+                android:id="@+id/checkbox_agua"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/agua"
+                android:buttonTint="@color/pokemon_agua"
+                android:checked="true"/>
+            <CheckBox
+                android:id="@+id/checkbox_planta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/planta"
+                android:buttonTint="@color/pokemon_planta"/>
+            <CheckBox
+                android:id="@+id/checkbox_electrico"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/electrico"
+                android:buttonTint="@color/pokemon_electrico"/>
+            <CheckBox
+                android:id="@+id/checkbox_hielo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/hielo"
+                android:buttonTint="@color/pokemon_hielo"/>
+            <CheckBox
+                android:id="@+id/checkbox_lucha"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/lucha"
+                android:buttonTint="@color/pokemon_lucha"/>
+            <CheckBox
+                android:id="@+id/checkbox_veneno"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/veneno"
+                android:buttonTint="@color/pokemon_veneno"/>
+            <CheckBox
+                android:id="@+id/checkbox_tierra"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/tierra"
+                android:buttonTint="@color/pokemon_tierra"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="127dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp">
+
+            <CheckBox
+                android:id="@+id/checkbox_volador"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/volador"
+                android:buttonTint="@color/pokemon_volador"/>
+            <CheckBox
+                android:id="@+id/checkbox_psiquico"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/psiquico"
+                android:buttonTint="@color/pokemon_psiquico"/>
+            <CheckBox
+                android:id="@+id/checkbox_bicho"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/bicho"
+                android:buttonTint="@color/pokemon_bicho"/>
+            <CheckBox
+                android:id="@+id/checkbox_roca"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/roca"
+                android:buttonTint="@color/pokemon_roca"/>
+            <CheckBox
+                android:id="@+id/checkbox_fantasma"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/fantasma"
+                android:checked="true"
+                android:buttonTint="@color/pokemon_fantasma"/>
+            <CheckBox
+                android:id="@+id/checkbox_siniestro"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/siniestro"
+                android:buttonTint="@color/pokemon_siniestro"/>
+            <CheckBox
+                android:id="@+id/checkbox_dragon"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/dragon"
+                android:buttonTint="@color/pokemon_dragon"/>
+            <CheckBox
+                android:id="@+id/checkbox_acero"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/acero"
+                android:buttonTint="@color/pokemon_acero"/>
+            <CheckBox
+                android:id="@+id/checkbox_hada"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "@string/hada"
+                android:buttonTint="@color/pokemon_hada"/>
+        </LinearLayout>
 
 
     </LinearLayout>
+
+    <Button
+        android:id="@+id/btnFiltrar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginVertical="16dp"
+        android:text="FILTRAR"
+        android:textColor="@color/texto_boton"
+        android:backgroundTint="@color/button_background"/>
+
+
+
+</LinearLayout>
+

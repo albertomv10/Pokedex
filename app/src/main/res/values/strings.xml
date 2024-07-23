@@ -1,3 +1,38 @@
 <resources>
     <string name="app_name">Pokedex</string>
+
+    <!-- Tipos de pokemmon -->
+    <string name="fuego">Fuego</string>
+    <string name="agua">Agua</string>
+    <string name="planta">Planta</string>
+    <string name="electrico">Eléctrico</string>
+    <string name="hielo">Hielo</string>
+    <string name="lucha">Lucha</string>
+    <string name="veneno">Veneno</string>
+    <string name="tierra">Tierra</string>
+    <string name="volador">Volador</string>
+    <string name="psiquico">Psíquico</string>
+    <string name="bicho">Bicho</string>
+    <string name="roca">Roca</string>
+    <string name="fantasma">Fantasma</string>
+    <string name="siniestro">Siniestro</string>
+    <string name="dragon">Dragón</string>
+    <string name="acero">Acero</string>
+    <string name="hada">Hada</string>
+    <string name="normal">Normal</string>
+
+    <!-- Generaciones -->
+    <string-array name="generations">
+        <item>Todas</item>
+        <item>Generación I</item>
+        <item>Generación II</item>
+        <item>Generación III</item>
+        <item>Generación IV</item>
+        <item>Generación V</item>
+        <item>Generación VI</item>
+        <item>Generación VII</item>
+        <item>Generación VIII</item>
+        <item>Generación IX</item>
+    </string-array>
+
 </resources>

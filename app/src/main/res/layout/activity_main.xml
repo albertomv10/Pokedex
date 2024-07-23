@@ -26,13 +26,14 @@
         android:layout_weight="0.5"
         android:src="@drawable/international_pok_mon_logo" />
 
-    <androidx.appcompat.widget.SearchView
-        android:id="@+id/lupa"
-        android:layout_width="0dp"
-        android:layout_height="90dp"
-        android:layout_weight="1"
-        app:searchIcon="@drawable/lupa"
-        android:queryHint="Buscar Pokémon" />
+    <ImageView
+        android:id="@+id/btnFiltrar"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginEnd="8dp"
+        android:layout_gravity="center"
+        android:src="@drawable/filtrar"
+        app:tint="@color/texto_boton" />
 
 </LinearLayout>
 
@@ -50,111 +51,4 @@
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:orientation="horizontal"
-        android:layout_gravity="bottom"
-        android:layout_marginHorizontal="8dp"
-        android:layout_marginBottom="20dp">
-
-        <androidx.cardview.widget.CardView
-            android:id="@+id/botonNombre"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginEnd="6dp"
-            android:layout_weight="1"
-            app:cardCornerRadius="10dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="@color/button_background">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal"
-                android:paddingVertical="6dp">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/lupa"
-                    app:tint="@color/texto_boton" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="Nombre"
-                    android:textColor="@color/texto_boton"
-                    android:textStyle="bold" />
-
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <androidx.cardview.widget.CardView
-            android:id="@+id/botonNumero"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            app:cardCornerRadius="10dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="@color/button_background">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal"
-                android:paddingVertical="6dp">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/lupa"
-                    app:tint="@color/texto_boton" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="Número"
-                    android:gravity="center"
-                    android:textColor="@color/texto_boton"
-                    android:textStyle="bold" />
-
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <androidx.cardview.widget.CardView
-            android:id="@+id/botonTipo"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="6dp"
-            android:layout_weight="1"
-            app:cardCornerRadius="10dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="@color/button_background">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingVertical="6dp">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/lupa"
-                    app:tint="@color/texto_boton" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="Tipo"
-                    android:gravity="center"
-                    android:textColor="@color/texto_boton"
-                    android:textStyle="bold" />
-
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-    </LinearLayout>
 </FrameLayout>
