@@ -24,15 +24,15 @@
     <!-- Generaciones -->
     <string-array name="generations">
         <item>Todas</item>
-        <item>Generación I</item>
-        <item>Generación II</item>
-        <item>Generación III</item>
-        <item>Generación IV</item>
-        <item>Generación V</item>
-        <item>Generación VI</item>
-        <item>Generación VII</item>
-        <item>Generación VIII</item>
-        <item>Generación IX</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
     </string-array>
 
 </resources>

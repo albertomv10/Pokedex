@@ -2,13 +2,13 @@ package com.example.pokedex
 
 import com.google.gson.annotations.SerializedName
 
-data class PokemonResponse(
-    val results: List<Pokemon>
-)
-
 data class Pokemon(
     val name: String,
     val url: String
+)
+
+data class PokemonResponse(
+    val results: List<Pokemon>
 )
 
 data class PokemonDetail(
@@ -39,7 +39,8 @@ data class Type(
 )
 
 data class PokemonSpecies(
-    val generation: Generation
+    val generation: Generation,
+    val name: String
 )
 
 data class Generation(
@@ -48,8 +49,18 @@ data class Generation(
 )
 
 data class GenerationDetail(
-    val names: List<Idiomas>
+    val names: List<Idiomas>,
+    val pokemon_species: List<PokemonSpecies>
 )
 data class Idiomas (
     val name: String
 )
+
+data class TypeResponse(
+    @SerializedName("pokemon") val pokemonEntries: List<PokemonEntry>
+)
+
+data class PokemonEntry(
+    val pokemon: Pokemon
+)
+

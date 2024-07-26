@@ -59,18 +59,18 @@ fun mapPokemonTipo(typeName: String): PokemonType {
         "fuego" -> PokemonType.FUEGO
         "agua" -> PokemonType.AGUA
         "planta" -> PokemonType.PLANTA
-        "electrico" -> PokemonType.ELECTRICO
+        "eléctrico" -> PokemonType.ELECTRICO
         "hielo" -> PokemonType.HIELO
         "lucha" -> PokemonType.LUCHA
         "veneno" -> PokemonType.VENENO
         "tierra" -> PokemonType.TIERRA
         "volador" -> PokemonType.VOLADOR
-        "psiquico" -> PokemonType.PSIQUICO
+        "psíquico" -> PokemonType.PSIQUICO
         "bicho" -> PokemonType.BICHO
         "roca" -> PokemonType.ROCA
         "fantasma" -> PokemonType.FANTASMA
         "siniestro" -> PokemonType.SINIESTRO
-        "dragon" -> PokemonType.DRAGON
+        "dragón" -> PokemonType.DRAGON
         "acero" -> PokemonType.ACERO
         "hada" -> PokemonType.HADA
         "normal" -> PokemonType.NORMAL

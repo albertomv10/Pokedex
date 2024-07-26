@@ -193,9 +193,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /*
     private fun fetchFilteredPokemonData(selectedGeneration: String, selectedTypes: List<PokemonType>, dialog: Dialog? = null) {
         if (isLoading) return
         isLoading = true
+        offset=0
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -223,7 +225,7 @@ class MainActivity : AppCompatActivity() {
 
                     withContext(Dispatchers.Main) {
                         pokemonDetails.forEach { pokemonClass ->
-                            if (pokemonClass.generation == selectedGeneration && pokemonClass.type.containsAll(selectedTypes)) {
+                            if (pokemonClass.generation == selectedGeneration && selectedTypes.any { it in pokemonClass.type }) {
                                 if (!pokemonList.any { it.numPokedex == pokemonClass.numPokedex }) {
                                     newPokemons.add(pokemonClass)
                                 }
@@ -231,6 +233,7 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         if (newPokemons.isNotEmpty()) {
+                            pokemonList.clear()
                             pokemonList.addAll(newPokemons)
                             adapter.notifyDataSetChanged()
                             offset += limit
@@ -247,7 +250,7 @@ class MainActivity : AppCompatActivity() {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(
                             this@MainActivity,
-                            NO_RESULTS_FOUND,
+                            "La API no devuelve resultados",
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -255,7 +258,7 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@MainActivity, NO_RESULTS_FOUND, Toast.LENGTH_SHORT)
+                    Toast.makeText(this@MainActivity, "Excepción", Toast.LENGTH_SHORT)
                         .show()
                 }
             } finally {
@@ -263,6 +266,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+     */
 
     private fun showSearchDialog() {
         val dialog = Dialog(this)
@@ -335,9 +339,13 @@ class MainActivity : AppCompatActivity() {
             if (checkBoxAcero.isChecked) selectedTypesString.add(getString(R.string.acero))
             if (checkBoxHada.isChecked) selectedTypesString.add(getString(R.string.hada))
 
-            val selectedTypes = selectedTypesString.map { mapPokemonType(it) }
+            //val selectedTypes = selectedTypesString.map { mapPokemonType(it) }
 
-            fetchFilteredPokemonData(selectedGenerations, selectedTypes, dialog)
+            if (selectedGenerations == "Todas" && selectedTypesString.size == 18){
+                Toast.makeText(this, "Está filtrando todos los pokemon", Toast.LENGTH_SHORT).show()
+            }else{
+                navigetToFiltered(selectedGenerations, selectedTypesString, dialog)
+            }
         }
 
 
@@ -356,6 +364,15 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra("pokemon_imagen", pokemon.image)
 
         startActivity(intent)
+    }
+
+    private fun navigetToFiltered(selectedGeneration: String, selectedTypes: List<String>, dialog: Dialog){
+
+        val intent = Intent(this, FilteredActivity::class.java)
+        intent.putExtra("pokemon_generacion", selectedGeneration)
+        intent.putStringArrayListExtra("pokemon_tipo", ArrayList(selectedTypes))
+        startActivity(intent)
+        dialog.dismiss()
     }
 }
 
