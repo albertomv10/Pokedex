@@ -216,7 +216,6 @@ class FilteredActivity : AppCompatActivity() {
     }
 
 
-
     private fun initRecyclerView() {
         recyclerView = findViewById(R.id.recycler_view)
         adapter = PokemonAdapter(pokemonList) { searchPokemonName(it) }
@@ -290,7 +289,7 @@ class FilteredActivity : AppCompatActivity() {
         intent.putExtra("pokemon_id", pokemon.numPokedex)
 
         // Convertir la lista de PokemonType a una lista de strings
-        val tipos = pokemon.type.map { it.name }
+        val tipos = pokemon.type.map { it.nombre }
         intent.putStringArrayListExtra("pokemon_tipo", ArrayList(tipos))
 
         intent.putExtra("pokemon_generacion", pokemon.generation)

@@ -101,6 +101,4 @@ fun mapPokemonType(typeName: String): PokemonType {
         else -> PokemonType.NORMAL // Valor predeterminado si no se encuentra el tipo
     }
 
-
-
 }

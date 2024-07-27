@@ -37,15 +37,15 @@ class PokemonDetailActivity : AppCompatActivity() {
             val tipo2LayoutParams = txtTipo2.layoutParams as LinearLayout.LayoutParams
 
             if (pokemonTipos.size > 1) {
-                txtTipo1.text = pokemonTipos[0].name
-                txtTipo2.text = pokemonTipos[1].name
+                txtTipo1.text = pokemonTipos[0].nombre
+                txtTipo2.text = pokemonTipos[1].nombre
                 txtTipo1.setBackgroundColor(ContextCompat.getColor(this, pokemonTipos[0].colorResId))
                 txtTipo2.setBackgroundColor(ContextCompat.getColor(this, pokemonTipos[1].colorResId))
                 tipo1LayoutParams.weight = 1f
                 tipo2LayoutParams.weight = 1f
                 txtTipo2.visibility = TextView.VISIBLE
             } else {
-                txtTipo1.text = pokemonTipos[0].name
+                txtTipo1.text = pokemonTipos[0].nombre
                 txtTipo1.setBackgroundColor(ContextCompat.getColor(this, pokemonTipos[0].colorResId))
                 tipo1LayoutParams.weight = 1f
                 txtTipo2.visibility = TextView.GONE
