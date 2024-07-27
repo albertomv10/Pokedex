@@ -295,6 +295,7 @@ class MainActivity : AppCompatActivity() {
             spinner.adapter = adapter
         }
 
+        val checkBoxTodos: CheckBox = dialog.findViewById(R.id.checkbox_todos)
         val checkBoxNormal: CheckBox = dialog.findViewById(R.id.checkbox_normal)
         val checkBoxFuego: CheckBox = dialog.findViewById(R.id.checkbox_fuego)
         val checkBoxAgua: CheckBox = dialog.findViewById(R.id.checkbox_agua)
@@ -315,6 +316,49 @@ class MainActivity : AppCompatActivity() {
         val checkBoxHada: CheckBox = dialog.findViewById(R.id.checkbox_hada)
 
         val filtrarButton = dialog.findViewById<Button>(R.id.btnFiltrar)
+
+
+        checkBoxTodos.setOnClickListener {
+            if (checkBoxTodos.isChecked){
+                checkBoxNormal.isChecked = true
+                checkBoxFuego.isChecked = true
+                checkBoxAgua.isChecked = true
+                checkBoxPlanta.isChecked = true
+                checkBoxElectrico.isChecked = true
+                checkBoxHielo.isChecked = true
+                checkBoxLucha.isChecked = true
+                checkBoxVeneno.isChecked = true
+                checkBoxTierra.isChecked = true
+                checkBoxVolador.isChecked = true
+                checkBoxPsiquico.isChecked = true
+                checkBoxBicho.isChecked = true
+                checkBoxRoca.isChecked = true
+                checkBoxFantasma.isChecked = true
+                checkBoxSiniestro.isChecked = true
+                checkBoxDragon.isChecked = true
+                checkBoxAcero.isChecked = true
+                checkBoxHada.isChecked = true
+            }else{
+                checkBoxNormal.isChecked = false
+                checkBoxFuego.isChecked = false
+                checkBoxAgua.isChecked = false
+                checkBoxPlanta.isChecked = false
+                checkBoxElectrico.isChecked = false
+                checkBoxHielo.isChecked = false
+                checkBoxLucha.isChecked = false
+                checkBoxVeneno.isChecked = false
+                checkBoxTierra.isChecked = false
+                checkBoxVolador.isChecked = false
+                checkBoxPsiquico.isChecked = false
+                checkBoxBicho.isChecked = false
+                checkBoxRoca.isChecked = false
+                checkBoxFantasma.isChecked = false
+                checkBoxSiniestro.isChecked = false
+                checkBoxDragon.isChecked = false
+                checkBoxAcero.isChecked = false
+                checkBoxHada.isChecked = false
+            }
+        }
 
         filtrarButton.setOnClickListener {
             val selectedGenerations = spinner.selectedItem.toString()
@@ -340,11 +384,14 @@ class MainActivity : AppCompatActivity() {
             if (checkBoxHada.isChecked) selectedTypesString.add(getString(R.string.hada))
 
             //val selectedTypes = selectedTypesString.map { mapPokemonType(it) }
-
-            if (selectedGenerations == "Todas" && selectedTypesString.size == 18){
-                Toast.makeText(this, "Está filtrando todos los pokemon", Toast.LENGTH_SHORT).show()
+            if (selectedTypesString.isNotEmpty()){
+                if (selectedGenerations == "Todas" && selectedTypesString.size == 18){
+                    Toast.makeText(this, "Está filtrando todos los pokemon", Toast.LENGTH_SHORT).show()
+                }else{
+                    navigetToFiltered(selectedGenerations, selectedTypesString, dialog)
+                }
             }else{
-                navigetToFiltered(selectedGenerations, selectedTypesString, dialog)
+                Toast.makeText(this, "Debe seleccionar al menos un tipo", Toast.LENGTH_SHORT).show()
             }
         }
 

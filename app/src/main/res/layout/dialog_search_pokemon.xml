@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="270dp"
+    android:layout_width="290dp"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
@@ -9,8 +9,9 @@
         android:id="@+id/search_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
         app:iconifiedByDefault="false"
-        android:queryHint="Buscar Pokémon" />
+        app:defaultQueryHint="Buscar nombre o número"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -32,6 +33,13 @@
         android:text="Tipo/s"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"/>
+    <CheckBox
+        android:id="@+id/checkbox_todos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Todos"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -54,15 +62,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text= "@string/fuego"
-                android:buttonTint="@color/pokemon_fuego"
-                android:checked="true" />
+                android:buttonTint="@color/pokemon_fuego" />
             <CheckBox
                 android:id="@+id/checkbox_agua"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text= "@string/agua"
-                android:buttonTint="@color/pokemon_agua"
-                android:checked="true"/>
+                android:buttonTint="@color/pokemon_agua" />
             <CheckBox
                 android:id="@+id/checkbox_planta"
                 android:layout_width="match_parent"
@@ -136,7 +142,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text= "@string/fantasma"
-                android:checked="true"
                 android:buttonTint="@color/pokemon_fantasma"/>
             <CheckBox
                 android:id="@+id/checkbox_siniestro"
