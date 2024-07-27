@@ -4,7 +4,8 @@ import com.google.gson.annotations.SerializedName
 
 data class Pokemon(
     val name: String,
-    val url: String
+    val url: String,
+    val id: Int
 )
 
 data class PokemonResponse(
@@ -40,7 +41,8 @@ data class Type(
 
 data class PokemonSpecies(
     val generation: Generation,
-    val name: String
+    val name: String,
+    val id: Int
 )
 
 data class Generation(

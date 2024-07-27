@@ -141,7 +141,11 @@ class FilteredActivity : AppCompatActivity() {
                         Log.d("FilteredPokemonData", "Fetching Pokémon of type: ${type.nombreIngles}")
                         val typeResponse = RetrofitInstance.api.getPokemonByType(type.nombreIngles.toLowerCase())
                         Log.d("FilteredPokemonData", "First Pokémon of the response: ${typeResponse.pokemonEntries.first().pokemon.name}")
-                        pokemonByType.addAll(typeResponse.pokemonEntries.map { it.pokemon.name.toLowerCase() })
+                        typeResponse.pokemonEntries.forEach {
+                            if (it.pokemon.id <= 1025) {
+                                pokemonByType.add(it.pokemon.name)
+                            }
+                        }
                         Log.d("FilteredPokemonData", "Fetched ${typeResponse.pokemonEntries.size} Pokémon of type ${type.nombreIngles}")
                         Log.d("FilteredPokemonData", "First Pokémon of type ${type.nombreIngles}: ${pokemonByType.first()}")
                     }
@@ -157,16 +161,16 @@ class FilteredActivity : AppCompatActivity() {
                 }
 
                 // Filtrar Pokémon por tipo y generación
-                if (pokemonByType.isNotEmpty()){
+                if (pokemonByType.size == 18){
+                    filteredPokemonNames.addAll(pokemonByGeneration.toList())
+                }else{
                     if(selectedGeneration != "Todas") {
                         filteredPokemonNames.addAll(
-                            pokemonByType.intersect(pokemonByGeneration).toList()
+                            pokemonByGeneration.intersect(pokemonByType).toList()
                         )
                     }else{
                         filteredPokemonNames.addAll(pokemonByType.toList())
                     }
-                }else{
-                    filteredPokemonNames.addAll(pokemonByGeneration.toList())
                 }
 
 

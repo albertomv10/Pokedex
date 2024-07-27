@@ -156,8 +156,8 @@ class MainActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val pokemonDetail = RetrofitInstance.api.getPokemonDetail(searchQuery.toLowerCase())
-                val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(pokemonDetail.name)
+                val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(searchQuery.toLowerCase().trim())
+                val pokemonDetail = RetrofitInstance.api.getPokemonDetail(pokemonSpecies.id.toString())
                 val generationDetail = RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
 
                 val pokemonTypes = pokemonDetail.types.map { mapPokemonType(it.type.name) }
@@ -165,7 +165,7 @@ class MainActivity : AppCompatActivity() {
                 val generationName = generationDetail.names.getOrNull(5)?.name ?: "Unknown"
 
                 val pokemonClass = PokemonClass(
-                    name = pokemonDetail.name.capitalize(),
+                    name = pokemonSpecies.name.capitalize(),
                     numPokedex = pokemonDetail.id,
                     type = pokemonTypes,
                     generation = generationName,
