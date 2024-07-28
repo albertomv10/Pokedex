@@ -52,7 +52,7 @@ data class Generation(
 
 data class GenerationDetail(
     val names: List<Idiomas>,
-    val pokemon_species: List<PokemonSpecies>
+    val pokemon_species: List<PokemonEntrySpecies>
 )
 data class Idiomas (
     val name: String
@@ -63,6 +63,12 @@ data class TypeResponse(
 )
 
 data class PokemonEntry(
-    val pokemon: Pokemon
+    val pokemon: Pokemon,
+    val url: String
+)
+
+data class PokemonEntrySpecies(
+    val pokemon: PokemonSpecies,
+    val url: String
 )
 

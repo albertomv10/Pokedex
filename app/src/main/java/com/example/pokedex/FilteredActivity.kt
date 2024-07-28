@@ -1,8 +1,10 @@
 package com.example.pokedex
 
+import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
@@ -20,32 +22,26 @@ import kotlinx.coroutines.withContext
 
 private lateinit var recyclerView: RecyclerView
 private lateinit var adapter: PokemonAdapter
+@SuppressLint("StaticFieldLeak")
+private lateinit var progressBar: ProgressBar
 private val pokemonList = mutableListOf<PokemonClass>()
-private var isLoading = false
-
-
-private var offset = 0
-private val limit = 39
-
 
 class FilteredActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_filtered)
+        progressBar = findViewById(R.id.progress_bar)
         pokemonList.clear()
         initRecyclerView()
         val selectedTypes = intent.getStringArrayListExtra("pokemon_tipo")?.map { mapPokemonTipo(it.toLowerCase()) }
         val selectedGeneration = intent.getStringExtra("pokemon_generacion")
 
         fetchFilteredPokemonData(selectedGeneration, selectedTypes)
-        //setupScrollListener(selectedGeneration, selectedTypes)
     }
 
     @OptIn(UnstableApi::class)
     private fun fetchFilteredPokemonData(selectedGeneration: String?, selectedTypes: List<PokemonType>?) {
-        if (isLoading) return
-        isLoading = true
-
+        progressBar.visibility = ProgressBar.VISIBLE
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val pokemonTypeDetail = mutableListOf<PokemonDetail>()
@@ -60,17 +56,12 @@ class FilteredActivity : AppCompatActivity() {
                         Log.d("FilteredPokemonData", "Fetching Pokémon of type: ${type.nombreIngles}")
                         val typeResponse = RetrofitInstance.api.getPokemonByType(type.nombreIngles.toLowerCase())
                         Log.d("FilteredPokemonData", "Tamaño de la respuesta: ${typeResponse.pokemonEntries.size}")
+                        pokemonByType.addAll(typeResponse.pokemonEntries.map { entry ->
 
-                        val typeDetails = typeResponse.pokemonEntries.map { entry ->
-                            async {
-                                RetrofitInstance.api.getPokemonDetail(entry.pokemon.name)
-                            }
-                        }.awaitAll()
+                            extractNumberFromUrl(entry.pokemon.url)
+                        })
+                        Log.d("FilteredPokemonData", "url: ${pokemonByType.first()}")
 
-                        pokemonTypeDetail.addAll(typeDetails)
-                        pokemonByType.addAll(typeDetails.map { it.id.toString() })
-                        Log.d("FilteredPokemonData", "Filtrados ${pokemonByType.size} Pokémon of type ${type.nombreIngles}")
-                        Log.d("FilteredPokemonData", "First Pokémon of type ${type.nombreIngles}: ${pokemonByType.first()}")
                     }
                 }
 
@@ -80,15 +71,13 @@ class FilteredActivity : AppCompatActivity() {
                     val generationResponse = RetrofitInstance.api.getPokemonGeneration(selectedGeneration.toLowerCase())
                     Log.d("FilteredPokemonData", "Fetched ${generationResponse.pokemon_species.size} Pokémon of generation $selectedGeneration")
 
-                    val generationSpecies = generationResponse.pokemon_species.map { species ->
-                        async {
-                            RetrofitInstance.api.getPokemonSpecies(species.name)
-                        }
-                    }.awaitAll()
+                    pokemonByGeneration.addAll(generationResponse.pokemon_species.map { species ->
 
-                    pokemonGenerationSpecies.addAll(generationSpecies)
-                    pokemonByGeneration.addAll(generationSpecies.map { it.id.toString() })
-                    Log.d("FilteredPokemonData", "First Pokémon of generation $selectedGeneration: ${pokemonByGeneration.firstOrNull()}")
+                      extractNumberFromUrl(species.url)
+
+                    })
+
+                    Log.d("FilteredPokemonData", "First Pokémon of generation $selectedGeneration: ${pokemonByGeneration.first()}")
                 }
 
                 // Filtrar Pokémon por tipo y generación
@@ -134,7 +123,6 @@ class FilteredActivity : AppCompatActivity() {
                 }.awaitAll().filterNotNull()
 
                 withContext(Dispatchers.Main) {
-                    pokemonList.clear()
                     pokemonList.addAll(pokemonDetails)
                     adapter.notifyDataSetChanged()
                     if (pokemonDetails.isEmpty()) {
@@ -147,12 +135,11 @@ class FilteredActivity : AppCompatActivity() {
                     Toast.makeText(this@FilteredActivity, "Excepción", Toast.LENGTH_SHORT).show()
                 }
             } finally {
-                isLoading = false
+                progressBar.visibility = ProgressBar.GONE
             }
         }
 
     }
-
 
     private fun initRecyclerView() {
         recyclerView = findViewById(R.id.recycler_view)
@@ -162,25 +149,7 @@ class FilteredActivity : AppCompatActivity() {
         recyclerView.adapter = adapter
 
     }
-
-    private fun setupScrollListener(selectedGeneration: String?, selectedTypes: List<PokemonType>?) {
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                val layoutManager = recyclerView.layoutManager as GridLayoutManager
-                val totalItemCount = layoutManager.itemCount
-                val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
-
-                if (!isLoading && totalItemCount <= (lastVisibleItem + limit / 2)) {
-                    fetchFilteredPokemonData(selectedGeneration, selectedTypes)
-                }
-            }
-        })
-    }
-
     private fun searchPokemonName(searchQuery: String, dialog: Dialog? = null) {
-        if (isLoading) return
-        isLoading = true
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -215,8 +184,6 @@ class FilteredActivity : AppCompatActivity() {
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-            } finally {
-                isLoading = false
             }
         }
     }
@@ -234,5 +201,14 @@ class FilteredActivity : AppCompatActivity() {
         intent.putExtra("pokemon_imagen", pokemon.image)
 
         startActivity(intent)
+    }
+
+    fun extractNumberFromUrl(url: String): String {
+        // Utiliza una expresión regular para buscar el número al final del URL
+        val regex = """/(\d+)/?$""".toRegex()
+        val matchResult = regex.find(url)
+
+        // Si se encuentra un resultado, devuelve el número encontrado
+        return matchResult?.groupValues?.get(1) ?: ""
     }
 }
