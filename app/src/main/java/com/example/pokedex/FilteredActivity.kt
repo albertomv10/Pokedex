@@ -32,6 +32,7 @@ class FilteredActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_filtered)
+        pokemonList.clear()
         initRecyclerView()
         val selectedTypes = intent.getStringArrayListExtra("pokemon_tipo")?.map { mapPokemonTipo(it.toLowerCase()) }
         val selectedGeneration = intent.getStringExtra("pokemon_generacion")
@@ -39,89 +40,6 @@ class FilteredActivity : AppCompatActivity() {
         fetchFilteredPokemonData(selectedGeneration, selectedTypes)
         //setupScrollListener(selectedGeneration, selectedTypes)
     }
-
-    /*
-    private fun fetchFilteredPokemonData(selectedGeneration: String?, selectedTypes: List<PokemonType>?) {
-        if (isLoading) return
-        isLoading = true
-        if (selectedGeneration == "Todas") {
-            Toast.makeText(this, selectedGeneration, Toast.LENGTH_SHORT).show()
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    val response = RetrofitInstance.api.getPokemonList(offset, limit)
-
-                    if (response.results.isNotEmpty()) {
-                        val newPokemons = mutableListOf<PokemonClass>()
-
-                        val pokemonDetails = response.results.map { pokemon ->
-                            async {
-                                val pokemonDetail =
-                                    RetrofitInstance.api.getPokemonDetail(pokemon.name)
-                                val pokemonSpecies =
-                                    RetrofitInstance.api.getPokemonSpecies(pokemonDetail.name)
-                                val generationDetail =
-                                    RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
-                                val pokemonTypes =
-                                    pokemonDetail.types.map { mapPokemonType(it.type.name) }
-
-                                PokemonClass(
-                                    name = pokemonDetail.name.capitalize(),
-                                    numPokedex = pokemonDetail.id,
-                                    type = pokemonTypes,
-                                    generation = generationDetail.names.getOrNull(5)?.name
-                                        ?: "Unknown",
-                                    image = pokemonDetail.sprites.other.officialArtwork.front_default
-                                )
-                            }
-                        }.awaitAll()
-
-                        withContext(Dispatchers.Main) {
-                            pokemonDetails.forEach { pokemonClass ->
-                                if (selectedTypes != null) {
-                                    if (selectedTypes.any { it in pokemonClass.type }) {
-                                        if (!pokemonList.any { it.numPokedex == pokemonClass.numPokedex }) {
-                                            newPokemons.add(pokemonClass)
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (newPokemons.isNotEmpty()) {
-                                pokemonList.addAll(newPokemons)
-                                adapter.notifyDataSetChanged()
-                                offset += limit
-                            } else {
-                                Toast.makeText(
-                                    this@FilteredActivity,
-                                    NO_RESULTS_FOUND,
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
-                    } else {
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(
-                                this@FilteredActivity,
-                                "La API no devuelve resultados",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@FilteredActivity, "Excepción", Toast.LENGTH_SHORT)
-                            .show()
-                    }
-                } finally {
-                    isLoading = false
-                }
-            }
-        }else{
-            Toast.makeText(this, "Funcion no implementada todavía", Toast.LENGTH_SHORT).show()
-        }
-    }
-     */
 
     @OptIn(UnstableApi::class)
     private fun fetchFilteredPokemonData(selectedGeneration: String?, selectedTypes: List<PokemonType>?) {
@@ -136,17 +54,13 @@ class FilteredActivity : AppCompatActivity() {
                 val filteredPokemonNames = mutableListOf<String>()
 
                 // Obtener Pokémon por tipo
-                if (selectedTypes != null && selectedTypes.isNotEmpty()) {
+                if (!selectedTypes.isNullOrEmpty()) {
                     selectedTypes.forEach { type ->
                         Log.d("FilteredPokemonData", "Fetching Pokémon of type: ${type.nombreIngles}")
                         val typeResponse = RetrofitInstance.api.getPokemonByType(type.nombreIngles.toLowerCase())
-                        Log.d("FilteredPokemonData", "First Pokémon of the response: ${typeResponse.pokemonEntries.first().pokemon.name}")
-                        typeResponse.pokemonEntries.forEach {
-                            if (it.pokemon.id <= 1025) {
-                                pokemonByType.add(it.pokemon.name)
-                            }
-                        }
-                        Log.d("FilteredPokemonData", "Fetched ${typeResponse.pokemonEntries.size} Pokémon of type ${type.nombreIngles}")
+                        Log.d("FilteredPokemonData", "Tamaño de la respuesta: ${typeResponse.pokemonEntries.size}")
+                        pokemonByType.addAll(typeResponse.pokemonEntries.map { it.pokemon.name })
+                        Log.d("FilteredPokemonData", "Filtrados ${pokemonByType.size} Pokémon of type ${type.nombreIngles}")
                         Log.d("FilteredPokemonData", "First Pokémon of type ${type.nombreIngles}: ${pokemonByType.first()}")
                     }
                 }
@@ -177,17 +91,20 @@ class FilteredActivity : AppCompatActivity() {
                 Log.d("FilteredPokemonData", "Filtered Pokémon count: ${filteredPokemonNames.size}")
 
                 // Obtener detalles de los Pokémon filtrados
-                val pokemonDetails = filteredPokemonNames.map { pokemonName ->
+                val pokemonDetails = filteredPokemonNames.mapNotNull { pokemonName ->
                     async {
                         try {
                             Log.d("FilteredPokemonData", "Fetching details for Pokémon: $pokemonName")
                             val pokemonDetail = RetrofitInstance.api.getPokemonDetail(pokemonName)
+                            // Continuar solo si el ID del Pokémon es menor o igual a 1025
+                            if (pokemonDetail.id > 1025) return@async null
+
                             val pokemonTypes = pokemonDetail.types.map { mapPokemonType(it.type.name) }
-                            val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(pokemonDetail.name)
+                            val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(pokemonDetail.id.toString())
                             val generationDetail = RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
 
                             PokemonClass(
-                                name = pokemonDetail.name.capitalize(),
+                                name = pokemonSpecies.name.capitalize(),
                                 numPokedex = pokemonDetail.id,
                                 type = pokemonTypes,
                                 generation = generationDetail.names.getOrNull(5)?.name ?: "Unknown",
@@ -195,13 +112,13 @@ class FilteredActivity : AppCompatActivity() {
                             )
                         } catch (e: Exception) {
                             Log.e("FilteredPokemonData", "Error fetching details for Pokémon: $pokemonName", e)
-                            throw e
+                            null
                         }
                     }
-                }.awaitAll()
+                }.awaitAll().filterNotNull()
 
                 withContext(Dispatchers.Main) {
-                    pokemonList.clear()
+                    //pokemonList.clear()
                     pokemonList.addAll(pokemonDetails)
                     adapter.notifyDataSetChanged()
                     if (pokemonDetails.isEmpty()) {
@@ -250,8 +167,8 @@ class FilteredActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val pokemonDetail = RetrofitInstance.api.getPokemonDetail(searchQuery.toLowerCase())
-                val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(pokemonDetail.name)
+                val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(searchQuery.toLowerCase().trim())
+                val pokemonDetail = RetrofitInstance.api.getPokemonDetail(pokemonSpecies.id.toString())
                 val generationDetail = RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
 
                 val pokemonTypes = pokemonDetail.types.map { mapPokemonType(it.type.name) }
@@ -259,7 +176,7 @@ class FilteredActivity : AppCompatActivity() {
                 val generationName = generationDetail.names.getOrNull(5)?.name ?: "Unknown"
 
                 val pokemonClass = PokemonClass(
-                    name = pokemonDetail.name.capitalize(),
+                    name = pokemonSpecies.name.capitalize(),
                     numPokedex = pokemonDetail.id,
                     type = pokemonTypes,
                     generation = generationName,

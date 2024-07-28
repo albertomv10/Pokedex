@@ -40,7 +40,7 @@ class PokemonAdapter(private val pokemonList: MutableList<PokemonClass>, private
         background.setColor(color)
 
         holder.itemView.setOnClickListener {
-            onItemSelected(pokemon.name)
+            onItemSelected(pokemon.numPokedex.toString())
         }
 
     }
