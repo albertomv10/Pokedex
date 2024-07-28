@@ -13,6 +13,7 @@ class PokemonDetailActivity : AppCompatActivity() {
     lateinit var txtname: TextView
     lateinit var txtTipo1: TextView
     lateinit var txtTipo2: TextView
+    lateinit var txtNumPokedex: TextView
     lateinit var txtGeneracion: TextView
 
 
@@ -30,7 +31,9 @@ class PokemonDetailActivity : AppCompatActivity() {
 
         Picasso.get().load(url).into(imageView)
         txtname.text = nombre
+        txtNumPokedex.text = "#${pokemonId}"
         txtGeneracion.text = pokemonGeneracion
+
 
         if (pokemonTipos != null && pokemonTipos.isNotEmpty()) {
             val tipo1LayoutParams = txtTipo1.layoutParams as LinearLayout.LayoutParams
@@ -61,6 +64,7 @@ class PokemonDetailActivity : AppCompatActivity() {
         txtname = findViewById(R.id.text_name)
         txtTipo1 = findViewById(R.id.tipo1)
         txtTipo2 = findViewById(R.id.tipo2)
+        txtNumPokedex = findViewById(R.id.numPokedex)
         txtGeneracion = findViewById(R.id.text_generation)
 
     }

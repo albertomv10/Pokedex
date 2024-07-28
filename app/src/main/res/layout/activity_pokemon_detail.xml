@@ -71,14 +71,23 @@
             android:layout_weight="1"
             android:gravity="center"/>
     </LinearLayout>
-
+    <TextView
+        android:id="@+id/numPokedex"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/linear_layout"
+        android:layout_marginTop="16dp"
+        tools:text="#555"
+        android:textSize="60sp"/>
     <TextView
         android:id="@+id/text_generation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/linear_layout"
+        app:layout_constraintTop_toBottomOf="@id/numPokedex"
         android:layout_marginTop="16dp"
         tools:text="generacion"
         android:textSize="25sp"/>
