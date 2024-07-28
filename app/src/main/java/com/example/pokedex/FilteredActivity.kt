@@ -48,7 +48,8 @@ class FilteredActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-
+                val pokemonTypeDetail = mutableListOf<PokemonDetail>()
+                val pokemonGenerationSpecies = mutableListOf<PokemonSpecies>()
                 val pokemonByType = mutableSetOf<String>()
                 val pokemonByGeneration = mutableSetOf<String>()
                 val filteredPokemonNames = mutableListOf<String>()
@@ -59,7 +60,15 @@ class FilteredActivity : AppCompatActivity() {
                         Log.d("FilteredPokemonData", "Fetching Pokémon of type: ${type.nombreIngles}")
                         val typeResponse = RetrofitInstance.api.getPokemonByType(type.nombreIngles.toLowerCase())
                         Log.d("FilteredPokemonData", "Tamaño de la respuesta: ${typeResponse.pokemonEntries.size}")
-                        pokemonByType.addAll(typeResponse.pokemonEntries.map { it.pokemon.name })
+
+                        val typeDetails = typeResponse.pokemonEntries.map { entry ->
+                            async {
+                                RetrofitInstance.api.getPokemonDetail(entry.pokemon.name)
+                            }
+                        }.awaitAll()
+
+                        pokemonTypeDetail.addAll(typeDetails)
+                        pokemonByType.addAll(typeDetails.map { it.id.toString() })
                         Log.d("FilteredPokemonData", "Filtrados ${pokemonByType.size} Pokémon of type ${type.nombreIngles}")
                         Log.d("FilteredPokemonData", "First Pokémon of type ${type.nombreIngles}: ${pokemonByType.first()}")
                     }
@@ -70,23 +79,30 @@ class FilteredActivity : AppCompatActivity() {
                     Log.d("FilteredPokemonData", "Fetching Pokémon of generation: $selectedGeneration")
                     val generationResponse = RetrofitInstance.api.getPokemonGeneration(selectedGeneration.toLowerCase())
                     Log.d("FilteredPokemonData", "Fetched ${generationResponse.pokemon_species.size} Pokémon of generation $selectedGeneration")
-                    pokemonByGeneration.addAll(generationResponse.pokemon_species.map { it.name })
-                    Log.d("FilteredPokemonData", "First Pokémon of generation $selectedGeneration: ${pokemonByGeneration.first()}")
+
+                    val generationSpecies = generationResponse.pokemon_species.map { species ->
+                        async {
+                            RetrofitInstance.api.getPokemonSpecies(species.name)
+                        }
+                    }.awaitAll()
+
+                    pokemonGenerationSpecies.addAll(generationSpecies)
+                    pokemonByGeneration.addAll(generationSpecies.map { it.id.toString() })
+                    Log.d("FilteredPokemonData", "First Pokémon of generation $selectedGeneration: ${pokemonByGeneration.firstOrNull()}")
                 }
 
                 // Filtrar Pokémon por tipo y generación
-                if (pokemonByType.size == 18){
-                    filteredPokemonNames.addAll(pokemonByGeneration.toList())
-                }else{
-                    if(selectedGeneration != "Todas") {
-                        filteredPokemonNames.addAll(
-                            pokemonByGeneration.intersect(pokemonByType).toList()
-                        )
-                    }else{
-                        filteredPokemonNames.addAll(pokemonByType.toList())
+                filteredPokemonNames.addAll(
+                    if (pokemonByType.isNotEmpty()) {
+                        if (selectedGeneration != "Todas") {
+                            pokemonByType.intersect(pokemonByGeneration).toList()
+                        } else {
+                            pokemonByType.toList()
+                        }
+                    } else {
+                        pokemonByGeneration.toList()
                     }
-                }
-
+                )
 
                 Log.d("FilteredPokemonData", "Filtered Pokémon count: ${filteredPokemonNames.size}")
 
@@ -118,7 +134,7 @@ class FilteredActivity : AppCompatActivity() {
                 }.awaitAll().filterNotNull()
 
                 withContext(Dispatchers.Main) {
-                    //pokemonList.clear()
+                    pokemonList.clear()
                     pokemonList.addAll(pokemonDetails)
                     adapter.notifyDataSetChanged()
                     if (pokemonDetails.isEmpty()) {
@@ -134,6 +150,7 @@ class FilteredActivity : AppCompatActivity() {
                 isLoading = false
             }
         }
+
     }
 
 
