@@ -29,18 +29,6 @@
         android:textSize="50sp"
         android:textStyle="bold"/>
 
-    <!--
-    <TextView
-        android:id="@+id/text_types"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/text_name"
-        android:layout_marginTop="16dp"
-        tools:text="Tipo:"
-        android:textSize="25sp"/>
-    -->
     <LinearLayout
         android:id="@+id/linear_layout"
         android:layout_width="0dp"
@@ -91,5 +79,16 @@
         android:layout_marginTop="16dp"
         tools:text="generacion"
         android:textSize="25sp"/>
+    <TextView
+        android:id="@+id/hp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/text_generation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"
+        tools:text="HP"
+        android:textSize="25sp"/>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

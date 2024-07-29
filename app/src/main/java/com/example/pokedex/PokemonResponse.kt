@@ -16,7 +16,15 @@ data class PokemonDetail(
     val id: Int,
     val name: String,
     val sprites: Sprites,
+    val stats: List<Stats>,
     val types: List<TypeSlot>
+)
+data class Stats(
+    val base_stat: Int,
+    val stat: Stat
+)
+data class Stat(
+    val name: String
 )
 
 data class Sprites(

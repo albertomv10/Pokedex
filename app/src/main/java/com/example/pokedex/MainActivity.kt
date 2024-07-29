@@ -169,6 +169,7 @@ class MainActivity : AppCompatActivity() {
                     numPokedex = pokemonDetail.id,
                     type = pokemonTypes,
                     generation = generationName,
+                    hp = pokemonDetail.stats[0].base_stat,
                     image = pokemonDetail.sprites.other.officialArtwork.front_default
                 )
 
@@ -193,80 +194,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /*
-    private fun fetchFilteredPokemonData(selectedGeneration: String, selectedTypes: List<PokemonType>, dialog: Dialog? = null) {
-        if (isLoading) return
-        isLoading = true
-        offset=0
-
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response = RetrofitInstance.api.getPokemonList(offset, limit)
-
-                if (response.results.isNotEmpty()) {
-                    val newPokemons = mutableListOf<PokemonClass>()
-
-                    val pokemonDetails = response.results.map { pokemon ->
-                        async {
-                            val pokemonDetail = RetrofitInstance.api.getPokemonDetail(pokemon.name)
-                            val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(pokemonDetail.name)
-                            val generationDetail = RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
-                            val pokemonTypes = pokemonDetail.types.map { mapPokemonType(it.type.name) }
-
-                            PokemonClass(
-                                name = pokemonDetail.name.capitalize(),
-                                numPokedex = pokemonDetail.id,
-                                type = pokemonTypes,
-                                generation = generationDetail.names.getOrNull(5)?.name ?: "Unknown",
-                                image = pokemonDetail.sprites.other.officialArtwork.front_default
-                            )
-                        }
-                    }.awaitAll()
-
-                    withContext(Dispatchers.Main) {
-                        pokemonDetails.forEach { pokemonClass ->
-                            if (pokemonClass.generation == selectedGeneration && selectedTypes.any { it in pokemonClass.type }) {
-                                if (!pokemonList.any { it.numPokedex == pokemonClass.numPokedex }) {
-                                    newPokemons.add(pokemonClass)
-                                }
-                            }
-                        }
-
-                        if (newPokemons.isNotEmpty()) {
-                            pokemonList.clear()
-                            pokemonList.addAll(newPokemons)
-                            adapter.notifyDataSetChanged()
-                            offset += limit
-                        } else {
-                            Toast.makeText(
-                                this@MainActivity,
-                                NO_RESULTS_FOUND,
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                        dialog?.dismiss()
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "La API no devuelve resultados",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@MainActivity, "Excepción", Toast.LENGTH_SHORT)
-                        .show()
-                }
-            } finally {
-                isLoading = false
-            }
-        }
-    }
-     */
 
     private fun showSearchDialog() {
         val dialog = Dialog(this)
@@ -409,12 +336,12 @@ class MainActivity : AppCompatActivity() {
 
         intent.putExtra("pokemon_generacion", pokemon.generation)
         intent.putExtra("pokemon_imagen", pokemon.image)
+        intent.putExtra("pokemon_hp", pokemon.hp)
 
         startActivity(intent)
     }
 
     private fun navigetToFiltered(selectedGeneration: String, selectedTypes: List<String>, dialog: Dialog){
-
         val intent = Intent(this, FilteredActivity::class.java)
         intent.putExtra("pokemon_generacion", selectedGeneration)
         intent.putStringArrayListExtra("pokemon_tipo", ArrayList(selectedTypes))

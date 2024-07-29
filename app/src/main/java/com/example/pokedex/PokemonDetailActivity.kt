@@ -15,7 +15,7 @@ class PokemonDetailActivity : AppCompatActivity() {
     lateinit var txtTipo2: TextView
     lateinit var txtNumPokedex: TextView
     lateinit var txtGeneracion: TextView
-
+    lateinit var txtHp: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,11 +28,14 @@ class PokemonDetailActivity : AppCompatActivity() {
         val pokemonTipos = intent.getStringArrayListExtra("pokemon_tipo")
             ?.map { mapPokemonTipo(it) }
         val pokemonGeneracion = intent.getStringExtra("pokemon_generacion")
+        val pokemonHp = intent.getIntExtra("pokemon_hp", 0)
 
         Picasso.get().load(url).into(imageView)
         txtname.text = nombre
         txtNumPokedex.text = "#${pokemonId}"
         txtGeneracion.text = pokemonGeneracion
+        txtHp.text = "HP: ${pokemonHp}"
+
 
 
         if (pokemonTipos != null && pokemonTipos.isNotEmpty()) {
@@ -66,6 +69,7 @@ class PokemonDetailActivity : AppCompatActivity() {
         txtTipo2 = findViewById(R.id.tipo2)
         txtNumPokedex = findViewById(R.id.numPokedex)
         txtGeneracion = findViewById(R.id.text_generation)
+        txtHp = findViewById(R.id.hp)
 
     }
 }

@@ -166,6 +166,7 @@ class FilteredActivity : AppCompatActivity() {
                     numPokedex = pokemonDetail.id,
                     type = pokemonTypes,
                     generation = generationName,
+                    hp = pokemonDetail.stats[0].base_stat,
                     image = pokemonDetail.sprites.other.officialArtwork.front_default
                 )
 
@@ -199,6 +200,7 @@ class FilteredActivity : AppCompatActivity() {
 
         intent.putExtra("pokemon_generacion", pokemon.generation)
         intent.putExtra("pokemon_imagen", pokemon.image)
+        intent.putExtra("pokemon_hp", pokemon.hp)
 
         startActivity(intent)
     }
