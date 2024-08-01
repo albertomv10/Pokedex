@@ -14,7 +14,10 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.lifecycleScope
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 val Context.dataStore by preferencesDataStore("pokemon_data")
 
@@ -48,9 +51,13 @@ class PokemonDetailActivity : AppCompatActivity() {
         txtGeneracion.text = pokemonGeneracion
         txtHp.text = "HP: ${pokemonHp}"
 
-        isFavorite = getFavoriteStatus(pokemonId)
-        if (isFavorite){
-            updateFavoriteIcon(favoriteButton, isFavorite)
+        lifecycleScope.launch(Dispatchers.IO) {
+            getFavoriteStatus(pokemonId).collect { favorite ->
+                isFavorite = favorite ?: false
+                withContext(Dispatchers.Main) {
+                    updateFavoriteIcon(favoriteButton, isFavorite)
+                }
+            }
         }
 
         favoriteButton.setOnClickListener {
@@ -91,14 +98,10 @@ class PokemonDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun getFavoriteStatus(pokemonId: Int): Boolean {
-        var favorite = false
-        lifecycleScope.launch(Dispatchers.IO) {
-            dataStore.data.collect { preferences ->
-                favorite = preferences[booleanPreferencesKey(pokemonId.toString())] ?: false
-            }
-    }
-        return favorite
+    private fun getFavoriteStatus(pokemonId: Int): Flow<Boolean?> {
+        return dataStore.data.map { preferences ->
+            preferences[booleanPreferencesKey(pokemonId.toString())] ?: false
+        }
     }
 
     private fun updateFavoriteIcon(button: ImageButton, isFavorite:Boolean) {
