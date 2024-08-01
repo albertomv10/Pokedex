@@ -1,12 +1,22 @@
 package com.example.pokedex
 
+import android.content.Context
 import android.os.Bundle
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.preferencesDataStore
+import androidx.lifecycle.lifecycleScope
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
+val Context.dataStore by preferencesDataStore("pokemon_data")
 
 class PokemonDetailActivity : AppCompatActivity() {
     lateinit var imageView: ImageView
@@ -16,6 +26,8 @@ class PokemonDetailActivity : AppCompatActivity() {
     lateinit var txtNumPokedex: TextView
     lateinit var txtGeneracion: TextView
     lateinit var txtHp: TextView
+    lateinit var favoriteButton: ImageButton
+    private var isFavorite = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,7 +48,18 @@ class PokemonDetailActivity : AppCompatActivity() {
         txtGeneracion.text = pokemonGeneracion
         txtHp.text = "HP: ${pokemonHp}"
 
+        isFavorite = getFavoriteStatus(pokemonId)
+        if (isFavorite){
+            updateFavoriteIcon(favoriteButton, isFavorite)
+        }
 
+        favoriteButton.setOnClickListener {
+            isFavorite = !isFavorite
+            updateFavoriteIcon(favoriteButton, isFavorite)
+            lifecycleScope.launch(Dispatchers.IO) {
+                saveFavoriteStatus(isFavorite, pokemonId)
+            }
+        }
 
         if (pokemonTipos != null && pokemonTipos.isNotEmpty()) {
             val tipo1LayoutParams = txtTipo1.layoutParams as LinearLayout.LayoutParams
@@ -62,6 +85,30 @@ class PokemonDetailActivity : AppCompatActivity() {
         }
     }
 
+    private suspend fun saveFavoriteStatus(favorite: Boolean, pokemonId: Int) {
+        dataStore.edit { preferences ->
+            preferences[booleanPreferencesKey(pokemonId.toString())] = favorite
+        }
+    }
+
+    private fun getFavoriteStatus(pokemonId: Int): Boolean {
+        var favorite = false
+        lifecycleScope.launch(Dispatchers.IO) {
+            dataStore.data.collect { preferences ->
+                favorite = preferences[booleanPreferencesKey(pokemonId.toString())] ?: false
+            }
+    }
+        return favorite
+    }
+
+    private fun updateFavoriteIcon(button: ImageButton, isFavorite:Boolean) {
+        if (isFavorite) {
+            button.setImageResource(R.drawable.ic_corazon_on)
+        } else {
+            button.setImageResource(R.drawable.ic_corazon_off)
+        }
+    }
+
     private fun initComponents() {
         imageView = findViewById(R.id.image)
         txtname = findViewById(R.id.text_name)
@@ -70,6 +117,7 @@ class PokemonDetailActivity : AppCompatActivity() {
         txtNumPokedex = findViewById(R.id.numPokedex)
         txtGeneracion = findViewById(R.id.text_generation)
         txtHp = findViewById(R.id.hp)
+        favoriteButton = findViewById(R.id.favorite_button)
 
     }
 }

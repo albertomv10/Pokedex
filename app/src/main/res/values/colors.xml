@@ -4,6 +4,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="button_background">#FFD740</color>
     <color name="texto_boton">#2B4CFF</color>
+    <color name="fav_boton">#F5006A</color>
 
     <!-- Colores tipos de pokemon -->
     <color name="pokemon_fuego">#CC0000</color>        <!-- Dark Red -->
