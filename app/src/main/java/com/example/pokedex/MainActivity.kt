@@ -31,14 +31,13 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: PokemonAdapter
+    private lateinit var bottomNavigationView: com.google.android.material.bottomnavigation.BottomNavigationView
+    private lateinit var logo: ImageView
     private val pokemonList = mutableListOf<PokemonClass>()
     private var isLoading = false
     private var offset = 0
+
     private val limit = 21
-
-    lateinit var logo: ImageView
-    lateinit var btnFiltrar: ImageView
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,13 +50,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initListeners() {
-        btnFiltrar.setOnClickListener { showSearchDialog() }
+        bottomNavigationView.setOnItemSelectedListener {
+            when (it.itemId) {
+                R.id.home -> {
+                    true
+                }
+
+                R.id.Favorites -> {
+                    true
+                }
+                R.id.Buscar -> {
+                    showSearchDialog()
+                    true
+                }
+
+                else -> {
+                    false
+                }
+            }
+        }
     }
 
     private fun initComponents() {
         initRecyclerView()
         logo = findViewById(R.id.logo)
-        btnFiltrar = findViewById(R.id.btnFiltrar)
+        bottomNavigationView = findViewById(R.id.bottom_navigation)
     }
 
     private fun initRecyclerView() {
