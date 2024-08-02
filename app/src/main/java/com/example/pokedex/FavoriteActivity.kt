@@ -38,7 +38,7 @@ class FavoriteActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_favorite)
-        Log.d("FavoriteActivity", "onCreate called")
+        Log.d("FavoriteActivityLog", "onCreate called")
         initComponents()
         loadFavorites()
         initListeners()
@@ -47,7 +47,7 @@ class FavoriteActivity : AppCompatActivity() {
     private fun loadFavorites() {
         lifecycleScope.launch {
             val favoritePokemonIds = getFavoritePokemonIds()
-            Log.d("FavoriteActivity", "Favorite Pokemon IDs: $favoritePokemonIds")
+            Log.d("FavoriteActivityLog", "Favorite Pokemon IDs: $favoritePokemonIds")
             withContext(Dispatchers.Main) {
                 if (favoritePokemonIds.isNotEmpty()) {
                     fetchFavoritePokemonData(favoritePokemonIds)
@@ -102,13 +102,10 @@ class FavoriteActivity : AppCompatActivity() {
                     }.awaitAll()
 
                     withContext(Dispatchers.Main) {
-                        pokemonDetails.forEach { pokemonClass ->
-                            if (!pokemonList.any { it.numPokedex == pokemonClass.numPokedex }) {
-                                favoritePokemons.add(pokemonClass)
-                            }
-                        }
-                        if (favoritePokemons.isNotEmpty()) {
-                            pokemonList.addAll(favoritePokemons)
+
+                        if (pokemonDetails.isNotEmpty()) {
+                            pokemonList.clear()
+                            pokemonList.addAll(pokemonDetails)
                             adapter.notifyDataSetChanged()
                         }
                     }
