@@ -1,119 +1,94 @@
 package com.example.pokedex
 
+import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
-import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.Toast
+import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.pokedex.MainActivity.Companion.NO_RESULTS_FOUND
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 
-class MainActivity : AppCompatActivity() {
+private lateinit var recyclerView: RecyclerView
+private lateinit var adapter: PokemonAdapter
 
-    companion object {
-        const val TAG = "MainActivity"
-        const val BASE_URL = "https://pokeapi.co/api/v2/"
-        const val NO_RESULTS_FOUND = "No se encontraron resultados"
-    }
+@SuppressLint("StaticFieldLeak")
+private val pokemonList = mutableListOf<PokemonClass>()
+private lateinit var bottomNavigationView: com.google.android.material.bottomnavigation.BottomNavigationView
 
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: PokemonAdapter
-    private lateinit var bottomNavigationView: com.google.android.material.bottomnavigation.BottomNavigationView
-    private lateinit var logo: ImageView
-    private val pokemonList = mutableListOf<PokemonClass>()
-    private var isLoading = false
-    private var offset = 0
-
-    private val limit = 21
-
+class FavoriteActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
+        setContentView(R.layout.activity_favorite)
+        Log.d("FavoriteActivity", "onCreate called")
         initComponents()
+        loadFavorites()
         initListeners()
-        setupScrollListener()
-        fetchPokemonData()
     }
 
-    private fun initListeners() {
-        bottomNavigationView.setOnItemSelectedListener {
-            when (it.itemId) {
-                R.id.home -> {
-                    true
-                }
-                R.id.Favorites -> {
-                    startActivity(Intent(this, FavoriteActivity::class.java))
-                    true
-                }
-                R.id.Buscar -> {
-                    showSearchDialog()
-                    true
-                }
-                else -> {
-                    false
+    private fun loadFavorites() {
+        lifecycleScope.launch {
+            val favoritePokemonIds = getFavoritePokemonIds()
+            Log.d("FavoriteActivity", "Favorite Pokemon IDs: $favoritePokemonIds")
+            withContext(Dispatchers.Main) {
+                if (favoritePokemonIds.isNotEmpty()) {
+                    fetchFavoritePokemonData(favoritePokemonIds)
+                } else {
+                    Toast.makeText(
+                        this@FavoriteActivity,
+                        "No hay pokemon favoritos",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
     }
 
-    private fun initComponents() {
-        initRecyclerView()
-        logo = findViewById(R.id.logo)
-        bottomNavigationView = findViewById(R.id.bottom_navigation)
-        bottomNavigationView.setSelectedItemId(R.id.home)
-    }
+    private suspend fun getFavoritePokemonIds(): List<Int> {
+        return dataStore.data.map { preferences ->
+            val favoriteListKey = stringPreferencesKey("favorite_list")
+            val favoritesString = preferences[favoriteListKey] ?: ""
 
-    private fun initRecyclerView() {
-        recyclerView = findViewById(R.id.recycler_view)
-        adapter = PokemonAdapter(pokemonList) { searchPokemonName(it) }
-        val layoutManager = GridLayoutManager(this, 3)
-        recyclerView.layoutManager = layoutManager
-        recyclerView.adapter = adapter
-        //recyclerView.addItemDecoration(DividerItemDecoration(this, layoutManager.orientation))
-    }
-
-    private fun setupScrollListener() {
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                val layoutManager = recyclerView.layoutManager as GridLayoutManager
-                val totalItemCount = layoutManager.itemCount
-                val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
-
-                if (!isLoading && totalItemCount <= (lastVisibleItem + limit / 2)) {
-                    fetchPokemonData()
-                }
+            // Manejar valores vacíos
+            if (favoritesString.isBlank()) {
+                emptyList()
+            } else {
+                favoritesString.split(",")
+                    .mapNotNull {
+                        // Convertir solo si el valor es un número válido
+                        it.toIntOrNull()
+                    }
             }
-        })
+        }.first()
     }
 
-    private fun fetchPokemonData() {
-        if (isLoading) return
-        isLoading = true
-
+    private fun fetchFavoritePokemonData(favoritePokemonIds: List<Int>) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = RetrofitInstance.api.getPokemonList(offset, limit)
-
-                if (response.results.isNotEmpty()) {
-                    val newPokemons = mutableListOf<PokemonClass>()
-
-                    val pokemonDetails = response.results.map { pokemon ->
+                if (favoritePokemonIds.isNotEmpty()) {
+                    val favoritePokemons = mutableListOf<PokemonClass>()
+                    val pokemonDetails = favoritePokemonIds.map { pokemonId ->
                         async {
-                            val pokemonDetail = RetrofitInstance.api.getPokemonDetail(pokemon.name)
+                            val pokemonDetail =
+                                RetrofitInstance.api.getPokemonDetail(pokemonId.toString())
                             val pokemonTypes =
                                 pokemonDetail.types.map { mapPokemonType(it.type.name) }
 
@@ -129,27 +104,19 @@ class MainActivity : AppCompatActivity() {
                     withContext(Dispatchers.Main) {
                         pokemonDetails.forEach { pokemonClass ->
                             if (!pokemonList.any { it.numPokedex == pokemonClass.numPokedex }) {
-                                newPokemons.add(pokemonClass)
+                                favoritePokemons.add(pokemonClass)
                             }
                         }
-
-                        if (newPokemons.isNotEmpty()) {
-                            pokemonList.addAll(newPokemons)
+                        if (favoritePokemons.isNotEmpty()) {
+                            pokemonList.addAll(favoritePokemons)
                             adapter.notifyDataSetChanged()
-                            offset += limit
-                        } else {
-                            Toast.makeText(
-                                this@MainActivity,
-                                NO_RESULTS_FOUND,
-                                Toast.LENGTH_SHORT
-                            ).show()
                         }
                     }
                 } else {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(
-                            this@MainActivity,
-                            NO_RESULTS_FOUND,
+                            this@FavoriteActivity,
+                            "No hay pokemon favoritos",
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -157,24 +124,61 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@MainActivity, NO_RESULTS_FOUND, Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(this@FavoriteActivity, "Excepción", Toast.LENGTH_SHORT).show()
                 }
-            } finally {
-                isLoading = false
             }
         }
     }
 
+    private fun initComponents() {
+        initRecyclerView()
+        bottomNavigationView = findViewById(R.id.bottom_navigation)
+        bottomNavigationView.setSelectedItemId(R.id.Favorites)
+    }
+
+    private fun initListeners() {
+        bottomNavigationView.setOnItemSelectedListener {
+            when (it.itemId) {
+                R.id.home -> {
+                    startActivity(Intent(this, MainActivity::class.java))
+                    true
+                }
+
+                R.id.Favorites -> {
+                    true
+                }
+
+                R.id.Buscar -> {
+                    showSearchDialog()
+                    true
+                }
+
+                else -> {
+                    false
+                }
+            }
+        }
+    }
+
+    private fun initRecyclerView() {
+        recyclerView = findViewById(R.id.recycler_view)
+        adapter = PokemonAdapter(pokemonList) { searchPokemonName(it) }
+        val layoutManager = GridLayoutManager(this, 3)
+        recyclerView.layoutManager = layoutManager
+        recyclerView.adapter = adapter
+
+    }
+
     private fun searchPokemonName(searchQuery: String, dialog: Dialog? = null) {
-        if (isLoading) return
-        isLoading = true
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val pokemonSpecies = RetrofitInstance.api.getPokemonSpecies(searchQuery.toLowerCase().trim())
-                val pokemonDetail = RetrofitInstance.api.getPokemonDetail(pokemonSpecies.id.toString())
-                val generationDetail = RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
+                val pokemonSpecies =
+                    RetrofitInstance.api.getPokemonSpecies(searchQuery.toLowerCase().trim())
+                val pokemonDetail =
+                    RetrofitInstance.api.getPokemonDetail(pokemonSpecies.id.toString())
+                val generationDetail =
+                    RetrofitInstance.api.getPokemonGeneration(pokemonSpecies.generation.name)
 
                 val pokemonTypes = pokemonDetail.types.map { mapPokemonType(it.type.name) }
                 // Manejo de posibles excepciones de índice
@@ -199,13 +203,11 @@ class MainActivity : AppCompatActivity() {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
-                        this@MainActivity,
+                        this@FavoriteActivity,
                         NO_RESULTS_FOUND,
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-            } finally {
-                isLoading = false
             }
         }
     }
@@ -231,8 +233,11 @@ class MainActivity : AppCompatActivity() {
         })
 
         val spinner = dialog.findViewById<Spinner>(R.id.spinner)
-        ArrayAdapter.createFromResource(this, R.array.generations, android.R.layout.simple_spinner_item).also {
-                adapter ->
+        ArrayAdapter.createFromResource(
+            this,
+            R.array.generations,
+            android.R.layout.simple_spinner_item
+        ).also { adapter ->
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spinner.adapter = adapter
         }
@@ -261,7 +266,7 @@ class MainActivity : AppCompatActivity() {
 
 
         checkBoxTodos.setOnClickListener {
-            if (checkBoxTodos.isChecked){
+            if (checkBoxTodos.isChecked) {
                 checkBoxNormal.isChecked = true
                 checkBoxFuego.isChecked = true
                 checkBoxAgua.isChecked = true
@@ -280,7 +285,7 @@ class MainActivity : AppCompatActivity() {
                 checkBoxDragon.isChecked = true
                 checkBoxAcero.isChecked = true
                 checkBoxHada.isChecked = true
-            }else{
+            } else {
                 checkBoxNormal.isChecked = false
                 checkBoxFuego.isChecked = false
                 checkBoxAgua.isChecked = false
@@ -326,13 +331,14 @@ class MainActivity : AppCompatActivity() {
             if (checkBoxHada.isChecked) selectedTypesString.add(getString(R.string.hada))
 
             //val selectedTypes = selectedTypesString.map { mapPokemonType(it) }
-            if (selectedTypesString.isNotEmpty()){
-                if (selectedGenerations == "Todas" && selectedTypesString.size == 18){
-                    Toast.makeText(this, "Está filtrando todos los pokemon", Toast.LENGTH_SHORT).show()
-                }else{
+            if (selectedTypesString.isNotEmpty()) {
+                if (selectedGenerations == "Todas" && selectedTypesString.size == 18) {
+                    Toast.makeText(this, "Está filtrando todos los pokemon", Toast.LENGTH_SHORT)
+                        .show()
+                } else {
                     navigateToFiltered(selectedGenerations, selectedTypesString, dialog)
                 }
-            }else{
+            } else {
                 Toast.makeText(this, "Debe seleccionar al menos un tipo", Toast.LENGTH_SHORT).show()
             }
         }
@@ -354,7 +360,11 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    private fun navigateToFiltered(selectedGeneration: String, selectedTypes: List<String>, dialog: Dialog){
+    private fun navigateToFiltered(
+        selectedGeneration: String,
+        selectedTypes: List<String>,
+        dialog: Dialog
+    ) {
         val intent = Intent(this, FilteredActivity::class.java)
         intent.putExtra("pokemon_generacion", selectedGeneration)
         intent.putStringArrayListExtra("pokemon_tipo", ArrayList(selectedTypes))
@@ -362,4 +372,3 @@ class MainActivity : AppCompatActivity() {
         dialog.dismiss()
     }
 }
-

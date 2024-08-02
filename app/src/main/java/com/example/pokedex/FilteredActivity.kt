@@ -44,8 +44,6 @@ class FilteredActivity : AppCompatActivity() {
         progressBar.visibility = ProgressBar.VISIBLE
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val pokemonTypeDetail = mutableListOf<PokemonDetail>()
-                val pokemonGenerationSpecies = mutableListOf<PokemonSpecies>()
                 val pokemonByType = mutableSetOf<String>()
                 val pokemonByGeneration = mutableSetOf<String>()
                 val filteredPokemonNames = mutableListOf<String>()

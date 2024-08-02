@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.lifecycleScope
 import com.squareup.picasso.Picasso
@@ -94,7 +95,20 @@ class PokemonDetailActivity : AppCompatActivity() {
 
     private suspend fun saveFavoriteStatus(favorite: Boolean, pokemonId: Int) {
         dataStore.edit { preferences ->
-            preferences[booleanPreferencesKey(pokemonId.toString())] = favorite
+            val favoriteKey = booleanPreferencesKey(pokemonId.toString())
+            preferences[favoriteKey] = favorite
+
+            val favoriteListKey = stringPreferencesKey("favorite_list")
+            val favoriteList =
+                preferences[favoriteListKey]?.split(",")?.toMutableSet() ?: mutableSetOf()
+
+            if (favorite) {
+                favoriteList.add(pokemonId.toString())
+            } else {
+                favoriteList.remove(pokemonId.toString())
+            }
+            preferences[favoriteListKey] = favoriteList.joinToString(",")
+
         }
     }
 
